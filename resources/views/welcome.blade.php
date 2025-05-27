@@ -1,13 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>Login</title>
 
-    
+
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
 
-    
+
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 
     <style>
@@ -30,7 +31,7 @@
             bottom: 0;
             left: 0;
             background: linear-gradient(to bottom, #f00, #881d06);
-            background-image: url('/images/login.png'); 
+            background-image: url('/images/login.png');
             background-repeat: repeat;
             background-size: contain;
             z-index: 0;
@@ -91,13 +92,15 @@
             font-weight: bold;
             cursor: pointer;
         }
+
     </style>
 </head>
+
 <body>
-    <div class="right"></div> 
+    <div class="right"></div>
     <div class="left">
         <div class="title">Login</div>
-        <form>
+        <form method="POST" action="{{ route('login') }}">
             @csrf
             <div class="input">
                 <i class="bi bi-person-fill"></i>
@@ -109,6 +112,9 @@
             </div>
             <button class="btn" type="submit">Masuk</button>
         </form>
+
     </div>
 </body>
+
 </html>
+

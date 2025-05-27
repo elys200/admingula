@@ -24,7 +24,7 @@
             <ul>
                 <li class="menu-header">
                     <span class="title"> Sweet</span>
-                    <span class="title"> Seense.</span>
+                    <span class="title"> Sense.</span>
                 </li>
                 <li>
                     <a href="">
@@ -59,7 +59,7 @@
                     </a>
                 </li>
                 <li>
-                    <a href="{{route('resep')}}">
+                    <a href="{{route('resep_makanan')}}">
                         <span class="icon">
                             <iconify-icon icon="uil:book-open" width="40" height="40"></iconify-icon>
                         </span>
@@ -67,7 +67,7 @@
                     </a>
                 </li>
                 <li>
-                    <a href="{{route('kategorigula')}}">
+                    <a href="{{route('kategori_gula')}}">
                         <span class="icon">
                             <iconify-icon icon="healthicons:sugar-outline" width="58" height="58"></iconify-icon>
                         </span>

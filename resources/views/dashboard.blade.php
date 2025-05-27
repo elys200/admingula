@@ -22,7 +22,7 @@
             <ul>
                 <li class="menu-header">
                     <span class="title"> Sweet</span>
-                    <span class="title"> Seense.</span>
+                    <span class="title"> Sense.</span>
                 </li>
                 <li>
                     <a href="{{ route('profile') }}">
@@ -57,7 +57,7 @@
                     </a>
                 </li>
                 <li>
-                    <a href="{{route('resep')}}">
+                    <a href="{{route('resep_makanan')}}">
                         <span class="icon">
                             <iconify-icon icon="uil:book-open" width="40" height="40"></iconify-icon>
                         </span>
@@ -65,7 +65,7 @@
                     </a>
                 </li>
                 <li>
-                    <a href="{{route('kategorigula')}}">
+                    <a href="{{route('kategori_gula')}}">
                         <span class="icon">
                             <iconify-icon icon="healthicons:sugar-outline" width="58" height="58"></iconify-icon>
                         </span>
@@ -106,7 +106,7 @@
                                 <span class="title2"> 01 </span><br>
                                 <iconify-icon icon="mdi:journal" width="50" height="50" style="color: #fff">
                                 </iconify-icon>
-                                <span class="title3"> Data Jurnal </span><br>
+                                <span class="title3"> Data Jurnal</span><br>
                                 <span class="title3"> 15 Data </span><br>
                             </a>
                         </div>
@@ -119,7 +119,7 @@
                             </a>
                         </div>
                         <div class="card3">
-                            <a href="{{route('resep')}}">
+                            <a href="{{route('resep_makanan')}}">
                                 <span class="title2"> 03 </span><br>
                                 <iconify-icon icon="uil:book-open" width="50" height="50" style="color: #fff"></iconify-icon>
                                 <span class="title3"> Data Resep Makanan </span><br>

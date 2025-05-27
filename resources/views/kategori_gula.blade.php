@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title> Data Resep Makanan</title>
+    <title> Data Kategori Gula</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
     <style>
@@ -81,7 +81,7 @@
                 <div class="box">
                     <div class="topbar">
                         <div class="text1">
-                            <span class="tittle"> Data Resep Makanan </span>
+                            <span class="tittle"> Data Kategori Gula</span>
                         </div>
                         <div class="text2">
                             <span class="tittle"> Welcome, Han!</span>
@@ -105,49 +105,30 @@
                                 <tr>
                                     <td>ID</td>
                                     <td>Nama</td>
+                                    <td>Gula Minimal</td>
+                                    <td>Gula Maksimal</td>
                                     <td>Deskripsi</td>
-                                    <td>Panduan</td>
-                                    <td>Bahan</td>
-                                    <td>Total Kalori</td>
-                                    <td>Kadar Gula</td>
-                                    <td>Gambar</td>
                                     <td>Aksi</td>
                                 </tr>
                             </thead>
-                            <tbody id="table-body">
-                                @foreach ($resep as $r)
+                            <tbody id="tableBody">
+                                @foreach ($kategori as $kg)
                                 <tr>
-                                    <td>{{ $r->id }}</td>
+                                    <td>{{ $kg->id }}</td>
                                     <td>
-                                        <div id="judul-{{ $r->id }}" class="tabel-truncate" title="{{ $r->nama }}">
-                                            {{ $r->nama }}</div>
+                                        <div id="judul-{{ $kg->id }}" title="{{ $kg->nama }}">
+                                            {{ $kg->nama }}</div>
                                     </td>
-                                    <td>
-                                        <div class="tabel-truncate" title="{{ $r->deskripsi }}">{{ $r->deskripsi }}
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="tabel-truncate" title="{{ $r->panduan }}">{{ $r->panduan }}</div>
-                                    </td>
-                                    <td>
-                                        <div class="tabel-truncate" title="{{ $r->bahan }}">{{ $r->bahan }}</div>
-                                    </td>
-                                    <td>{{ $r->total_kalori }}</td>
-                                    <td>{{ $r->kadar_gula }}</td>
-                                    <td>
-                                        @if($r->gambar)
-                                        <img src="{{ asset('storage/' . $r->gambar) }}" alt="Gambar" width="60">
-                                        @else
-                                        Tidak ada
-                                        @endif
-                                    </td>
+                                    <td>{{ $kg->gula_min }}</td>
+                                    <td>{{ $kg->gula_max }}</td>
+                                    <td>{{ $kg->deskripsi }}</td>
                                     <td>
                                         <div class="icon-group">
                                             <iconify-icon icon="uil:edit" width="24" style="color: #E9B310"
-                                                onclick='openModal("edit", {{ $r->id }}, @json($r))'></iconify-icon>
+                                                onclick='openModal("edit", {{ $kg->id }}, @json($kg))'></iconify-icon>
                                             <iconify-icon icon="heroicons:trash-16-solid" width="24"
                                                 style="color: #E43A15"
-                                                onclick="openDeleteModal({{ $r->id }}, '{{ addslashes($r->nama) }}')">
+                                                onclick="openDeleteModal({{ $kg->id }}, '{{ addslashes($kg->nama) }}')">
                                             </iconify-icon>
                                         </div>
                                     </td>
@@ -165,7 +146,7 @@
     <div class="modal-overlay" id="modalOverlay">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title" id="modalTitle">Tambah Resep Baru</h3>
+                <h3 class="modal-title" id="modalTitle">Tambah Kategori Gula Baru</h3>
                 <div class="modal-close" onclick="closeModal()">
                     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -173,47 +154,38 @@
                 </div>
             </div>
 
-            <div class="modal-body">
+            <form id="modalForm" class="modal-body">
                 <div class="form-group">
-                    <label class="form-label" for="namaInput">Nama Resep</label>
-                    <input class="form-input" type="text" id="namaInput" placeholder="Masukkan nama resep" />
-                </div>
-                <div class="form-group">
-                    <label class="form-label" for="deskripsiInput">Deskripsi</label>
-                    <textarea class="form-textarea" id="deskripsiInput" placeholder="Masukkan deskripsi resep"
-                        rows="3"></textarea>
-                </div>
-                <div class="form-group">
-                    <label class="form-label" for="panduanInput">Panduan</label>
-                    <textarea class="form-textarea" id="panduanInput" placeholder="Masukkan panduan"
-                        rows="3"></textarea>
-                </div>
-                <div class="form-group">
-                    <label class="form-label" for="bahanInput">Bahan</label>
-                    <textarea class="form-textarea" id="bahanInput" placeholder="Masukkan daftar bahan"
-                        rows="4"></textarea>
+                    <label class="form-label" for="namaInput">Nama Kategori</label>
+                    <select class="form-input" id="namaInput" required>
+                        <option value="">-- Pilih --</option>
+                        <option value="low">Low</option>
+                        <option value="normal">Normal</option>
+                        <option value="high">High</option>
+                    </select>
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label" for="kaloriInput">Total Kalori</label>
-                    <input class="form-input" type="text" id="kaloriInput" placeholder="Masukkan total kalori" />
+                    <label class="form-label" for="gulaMinInput">Gula Minimal</label>
+                    <input class="form-input" type="text" id="gulaMinInput" placeholder="Masukkan batas minimal gula" />
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label" for="gulaInput">Kadar Gula</label>
-                    <input class="form-input" type="text" id="gulaInput" placeholder="Masukkan kadar gula" />
+                    <label class="form-label" for="gulaMaxInput">Gula Maksimal</label>
+                    <input class="form-input" type="text" id="gulaMaxInput"
+                        placeholder="Masukkan batas maksimal gula" />
                 </div>
+
                 <div class="form-group">
-                    <label class="form-label" for="gambarInput">Gambar</label>
-                    <input class="form-input" type="file" id="gambarInput" accept="image/*" />
-                    <img id="imagePreview" src="" alt="Preview Gambar"
-                        style="max-width: 200px; margin-top: 10px; display: none;" />
+                    <label class="form-label" for="deskripsiInput">Deskripsi (Opsional)</label>
+                    <textarea class="form-textarea" id="deskripsiInput" placeholder="Masukkan deskripsi (jika ada)"
+                        rows="3"></textarea>
                 </div>
-            </div>
+            </form>
 
             <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeModal()">Batal</button>
-                <button class="btn btn-primary" onclick="saveData()" id="saveButton">Simpan Resep</button>
+                <button class="btn btn-secondary" type="button" onclick="closeModal()">Batal</button>
+                <button class="btn btn-primary" type="button" onclick="saveData()" id="saveButton">Simpan</button>
             </div>
         </div>
     </div>
@@ -226,15 +198,15 @@
                     d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
             </svg>
             <p>Hapus Berita</p>
-            <p>Apakah kamu yakin ingin menghapus resep ini? <span id="deleteTitle"></span>?</p>
+            <p>Apakah kamu yakin ingin menghapus berita ini? <span id="deleteTitle"></span>?</p>
             <div class="button-container">
-                <button id="confirmDeleteBtn">Ya, hapus resep</button>
+                <button id="confirmDeleteBtn">Ya, hapus berita</button>
                 <button id="cancelDeleteBtn">Tidak</button>
             </div>
         </div>
     </div>
 
-    <script src="{{ asset('js/resep.js') }}"></script>
+    <script src="{{ asset('js/kategori.js') }}"></script>
 </body>
 
 </html>
