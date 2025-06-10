@@ -25,6 +25,7 @@ class User extends Authenticatable
         'umur',
         'berat_badan',
         'jenis_kelamin',
+        'foto',
     ];
 
     /**
