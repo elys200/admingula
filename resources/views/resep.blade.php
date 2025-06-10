@@ -107,46 +107,94 @@
                                     <td>Nama</td>
                                     <td>Deskripsi</td>
                                     <td>Panduan</td>
-                                    <td>Bahan</td>
                                     <td>Total Kalori</td>
+                                    <td>Total Karbohidrat</td>
+                                    <td>Total Lemak</td>
                                     <td>Kadar Gula</td>
+                                    <td>Bahan</td>
+                                    <td>Tips</td>
                                     <td>Gambar</td>
                                     <td>Aksi</td>
                                 </tr>
                             </thead>
+                            <!-- Perbaikan untuk bagian tbody tabel di view -->
                             <tbody id="table-body">
                                 @foreach ($resep as $r)
                                 <tr>
                                     <td>{{ $r->id }}</td>
                                     <td>
                                         <div id="judul-{{ $r->id }}" class="tabel-truncate" title="{{ $r->nama }}">
-                                            {{ $r->nama }}</div>
+                                            {{ $r->nama }}
+                                        </div>
                                     </td>
                                     <td>
                                         <div class="tabel-truncate" title="{{ $r->deskripsi }}">{{ $r->deskripsi }}
                                         </div>
                                     </td>
                                     <td>
-                                        <div class="tabel-truncate" title="{{ $r->panduan }}">{{ $r->panduan }}</div>
-                                    </td>
-                                    <td>
-                                        <div class="tabel-truncate" title="{{ $r->bahan }}">{{ $r->bahan }}</div>
+                                        @php
+                                        $panduanData = $r->panduan;
+                                        if (is_string($panduanData)) {
+                                        $panduanArray = json_decode($panduanData, true);
+                                        $panduanData = is_array($panduanArray) ? $panduanArray : [$panduanData];
+                                        } elseif (!is_array($panduanData)) {
+                                        $panduanData = [$panduanData];
+                                        }
+                                        $panduanText = implode(', ', array_filter($panduanData));
+                                        @endphp
+                                        <div class="tabel-truncate" title="{{ $panduanText }}">
+                                            {{ $panduanText }}
+                                        </div>
                                     </td>
                                     <td>{{ $r->total_kalori }}</td>
+                                    <td>{{ $r->total_karbohidrat }}</td>
+                                    <td>{{ $r->total_lemak }}</td>
                                     <td>{{ $r->kadar_gula }}</td>
                                     <td>
+                                        @php
+                                        $bahanData = $r->bahan;
+                                        if (is_string($bahanData)) {
+                                        $bahanArray = json_decode($bahanData, true);
+                                        $bahanData = is_array($bahanArray) ? $bahanArray : [$bahanData];
+                                        } elseif (!is_array($bahanData)) {
+                                        $bahanData = [$bahanData];
+                                        }
+                                        $bahanText = implode(', ', array_filter($bahanData));
+                                        @endphp
+                                        <div class="tabel-truncate" title="{{ $bahanText }}">
+                                            {{ $bahanText }}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        @php
+                                        $tipsData = $r->tips;
+                                        if (is_string($tipsData)) {
+                                        $tipsArray = json_decode($tipsData, true);
+                                        $tipsData = is_array($tipsArray) ? $tipsArray : [$tipsData];
+                                        } elseif (!is_array($tipsData)) {
+                                        $tipsData = [$tipsData];
+                                        }
+                                        $tipsText = implode(', ', array_filter($tipsData));
+                                        @endphp
+                                        <div class="tabel-truncate" title="{{ $tipsText }}">
+                                            {{ $tipsText }}
+                                        </div>
+                                    </td>
+                                    <td>
                                         @if($r->gambar)
-                                        <img src="{{ asset('storage/' . $r->gambar) }}" alt="Gambar" width="60">
+                                        <img src="{{ asset('storage/' . $r->gambar) }}" alt="Gambar" width="60"
+                                            style="border-radius: 4px;">
                                         @else
                                         Tidak ada
                                         @endif
                                     </td>
                                     <td>
                                         <div class="icon-group">
-                                            <iconify-icon icon="uil:edit" width="24" style="color: #E9B310"
+                                            <iconify-icon icon="uil:edit" width="24"
+                                                style="color: #E9B310; cursor: pointer;"
                                                 onclick='openModal("edit", {{ $r->id }}, @json($r))'></iconify-icon>
                                             <iconify-icon icon="heroicons:trash-16-solid" width="24"
-                                                style="color: #E43A15"
+                                                style="color: #E43A15; cursor: pointer;"
                                                 onclick="openDeleteModal({{ $r->id }}, '{{ addslashes($r->nama) }}')">
                                             </iconify-icon>
                                         </div>
@@ -161,7 +209,7 @@
         </div>
     </div>
 
-    <!-- Modal Pop-up -->
+    <!-- Modal Add Pop-up -->
     <div class="modal-overlay" id="modalOverlay">
         <div class="modal-content">
             <div class="modal-header">
@@ -184,14 +232,9 @@
                         rows="3"></textarea>
                 </div>
                 <div class="form-group">
-                    <label class="form-label" for="panduanInput">Panduan</label>
-                    <textarea class="form-textarea" id="panduanInput" placeholder="Masukkan panduan"
-                        rows="3"></textarea>
-                </div>
-                <div class="form-group">
-                    <label class="form-label" for="bahanInput">Bahan</label>
-                    <textarea class="form-textarea" id="bahanInput" placeholder="Masukkan daftar bahan"
-                        rows="4"></textarea>
+                    <label class="form-label" for="panduanInput">Panduan Memasak</label>
+                    <textarea class="form-textarea" id="panduanInput"
+                        placeholder="Siapkan ikan&#10;Bersihkan isi perut&#10;Tambahkan bumbu" rows="5"></textarea>
                 </div>
 
                 <div class="form-group">
@@ -200,9 +243,34 @@
                 </div>
 
                 <div class="form-group">
+                    <label class="form-label" for="karbohidratInput">Total Karbohidrat</label>
+                    <input class="form-input" type="text" id="karbohidratInput"
+                        placeholder="Masukkan total karbohidrat" />
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="lemakInput">Total Lemak</label>
+                    <input class="form-input" type="text" id="lemakInput" placeholder="Masukkan total lemak" />
+                </div>
+
+                <div class="form-group">
                     <label class="form-label" for="gulaInput">Kadar Gula</label>
                     <input class="form-input" type="text" id="gulaInput" placeholder="Masukkan kadar gula" />
                 </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="bahanInput">Bahan-bahan</label>
+                    <textarea class="form-textarea" id="bahanInput"
+                        placeholder="Ikan 500 gram&#10;Bumbu dasar 2 sendok&#10;Garam secukupnya" rows="5"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="tipsInput">Tips Memasak</label>
+                    <textarea class="form-textarea" id="tipsInput"
+                        placeholder="Gunakan api sedang&#10;Jangan terlalu lama menggoreng&#10;Tambahkan daun bawang di akhir"
+                        rows="5"></textarea>
+                </div>
+
                 <div class="form-group">
                     <label class="form-label" for="gambarInput">Gambar</label>
                     <input class="form-input" type="file" id="gambarInput" accept="image/*" />

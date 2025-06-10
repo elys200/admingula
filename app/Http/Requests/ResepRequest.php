@@ -25,9 +25,12 @@ class ResepRequest extends FormRequest
             'nama' => 'nullable|string|max:255',
             'deskripsi' => 'required|string',
             'panduan' => 'nullable|string',
-            'bahan' => 'nullable|string',
             'total_kalori' => 'required|string|max:255',
+            'total_karbohidrat' => 'required|string|max:255',
+            'total_lemak' => 'required|string|max:255',
             'kadar_gula' => 'required|string|max:255',
+            'bahan' => 'nullable|string',
+            'tips' => 'nullable|string',
             'gambar' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
         ];
     }

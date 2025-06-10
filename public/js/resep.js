@@ -1,8 +1,25 @@
 let currentMode = "add";
 let currentEditId = null;
-let deleteTargetId = null; // ID berita yang akan dihapus
+let deleteTargetId = null;
 
-function openModal(mode, id = null) {
+// Fungsi untuk mengonversi textarea ke array
+function convertTextToArray(text) {
+    if (!text || text.trim() === "") return [];
+
+    return text
+        .split("\n")
+        .map((line) => line.trim())
+        .filter((line) => line !== ""); 
+}
+
+// Fungsi untuk mengonversi array ke string teks
+function convertArrayToText(arr) {
+    if (!Array.isArray(arr)) return "";
+    return arr.join("\n");
+}
+
+// Modal Tambah / Edit
+function openModal(mode, id = null, data = null) {
     currentMode = mode;
     currentEditId = id;
 
@@ -11,88 +28,133 @@ function openModal(mode, id = null) {
     document.getElementById("saveButton").textContent =
         mode === "add" ? "Simpan" : "Update";
 
-    if (mode === "add") {
-        clearForm();
-    }
+    clearForm();
 
-    if (mode === "edit") {
+    if (mode === "edit" && data) {
+        // Set basic data
+        document.getElementById("namaInput").value = data.nama || "";
+        document.getElementById("deskripsiInput").value = data.deskripsi || "";
+        document.getElementById("kaloriInput").value = data.total_kalori || "";
+        document.getElementById("karbohidratInput").value =
+            data.total_karbohidrat || "";
+        document.getElementById("lemakInput").value = data.total_lemak || "";
+        document.getElementById("gulaInput").value = data.kadar_gula || "";
+
+        // Fungsi helper untuk parse string JSON ke array dengan aman
+        function safeParse(field) {
+            if (!field) return [];
+            if (Array.isArray(field)) return field;
+            try {
+                const parsed = JSON.parse(field);
+                return Array.isArray(parsed) ? parsed : [];
+            } catch {
+                return [];
+            }
+        }
+
+        // Ambil data detail dari API supaya data array benar-benar fresh dan valid
         fetch(`/api/resep/${id}`)
-            .then((res) => {
-                if (!res.ok) throw new Error("Data tidak ditemukan");
-                return res.json();
-            })
-            .then((response) => {
-                const data = response.data;
+            .then((response) => response.json())
+            .then((result) => {
+                const resepData = result.data;
 
-                document.getElementById("namaInput").value = data.nama || "";
-                document.getElementById("deskripsiInput").value =
-                    data.deskripsi || "";
+                // Set textarea dengan data parsed
                 document.getElementById("panduanInput").value =
-                    data.panduan || "";
-                document.getElementById("bahanInput").value = data.bahan || "";
-                document.getElementById("kaloriInput").value =
-                    data.total_kalori || "";
-                document.getElementById("gulaInput").value =
-                    data.kadar_gula || "";
-
-                const imgPreview = document.getElementById("imagePreview");
-                if (data.gambar) {
-                    imgPreview.src = `/storage/${data.gambar}`;
-                    imgPreview.style.display = "block";
-                } else {
-                    imgPreview.src = "";
-                    imgPreview.style.display = "none";
-                }
+                    convertArrayToText(safeParse(resepData.panduan));
+                document.getElementById("bahanInput").value =
+                    convertArrayToText(safeParse(resepData.bahan));
+                document.getElementById("tipsInput").value = convertArrayToText(
+                    safeParse(resepData.tips)
+                );
             })
-            .catch((err) => {
-                alert("Gagal memuat data untuk diedit.");
-                console.error(err);
+            .catch((error) => {
+                console.error("Error loading data:", error);
+
+                // Fallback pakai data awal yang sudah diterima
+                document.getElementById("panduanInput").value =
+                    convertArrayToText(safeParse(data.panduan));
+                document.getElementById("bahanInput").value =
+                    convertArrayToText(safeParse(data.bahan));
+                document.getElementById("tipsInput").value = convertArrayToText(
+                    safeParse(data.tips)
+                );
             });
+
+        // Set preview gambar jika ada
+        if (data.gambar) {
+            const preview = document.getElementById("imagePreview");
+            preview.src = `/storage/${data.gambar}`;
+            preview.style.display = "block";
+        }
     }
 
     document.getElementById("modalOverlay").classList.add("active");
 }
-// Fungsi tutup modal tambah/edit
+
 function closeModal() {
     document.getElementById("modalOverlay").classList.remove("active");
-    clearForm();
 }
 
-// Bersihkan form tambah/edit
 function clearForm() {
     document.getElementById("namaInput").value = "";
     document.getElementById("deskripsiInput").value = "";
     document.getElementById("panduanInput").value = "";
-    document.getElementById("bahanInput").value = "";
+    document.getElementById("tipsInput").value = "";
     document.getElementById("kaloriInput").value = "";
+    document.getElementById("karbohidratInput").value = "";
+    document.getElementById("lemakInput").value = "";
     document.getElementById("gulaInput").value = "";
+    document.getElementById("bahanInput").value = "";
+    document.getElementById("imagePreview").style.display = "none";
     document.getElementById("gambarInput").value = "";
-
-    const imgPreview = document.getElementById("imagePreview");
-    imgPreview.src = "";
-    imgPreview.style.display = "none";
 }
 
+// Tambah/Edit Resep
 function saveData() {
     const formData = new FormData();
-    formData.append("nama", document.getElementById("namaInput").value);
+
+    // Validasi input required
+    const nama = document.getElementById("namaInput").value.trim();
+    if (!nama) {
+        alert("Nama resep harus diisi!");
+        return;
+    }
+
+    formData.append("nama", nama);
     formData.append(
         "deskripsi",
         document.getElementById("deskripsiInput").value
     );
-    formData.append("panduan", document.getElementById("panduanInput").value);
-    formData.append("bahan", document.getElementById("bahanInput").value);
     formData.append(
         "total_kalori",
         document.getElementById("kaloriInput").value
     );
+    formData.append(
+        "total_karbohidrat",
+        document.getElementById("karbohidratInput").value
+    );
+    formData.append("total_lemak", document.getElementById("lemakInput").value);
     formData.append("kadar_gula", document.getElementById("gulaInput").value);
+
+    // Mengubah input teks menjadi array
+    const panduanText = document.getElementById("panduanInput").value;
+    const panduanArray = convertTextToArray(panduanText);
+    formData.append("panduan", JSON.stringify(panduanArray));
+
+    const bahanText = document.getElementById("bahanInput").value;
+    const bahanArray = convertTextToArray(bahanText);
+    formData.append("bahan", JSON.stringify(bahanArray));
+
+    const tipsText = document.getElementById("tipsInput").value;
+    const tipsArray = convertTextToArray(tipsText);
+    formData.append("tips", JSON.stringify(tipsArray));
 
     const gambar = document.getElementById("gambarInput").files[0];
     if (gambar) {
         formData.append("gambar", gambar);
     }
 
+    // URL & Method
     const url =
         currentMode === "add" ? "/api/resep" : `/api/resep/${currentEditId}`;
     const method = "POST";
@@ -101,57 +163,68 @@ function saveData() {
         formData.append("_method", "PUT");
     }
 
+    // Menonaktifkan tombol simpan sementara
+    const saveButton = document.getElementById("saveButton");
+    saveButton.disabled = true;
+    saveButton.textContent = "Menyimpan...";
+
     fetch(url, {
-        method: method,
+        method,
         body: formData,
+        headers: {
+            "X-Requested-With": "XMLHttpRequest",
+        },
     })
         .then(async (res) => {
             if (!res.ok) {
-                const errText = await res.text();
-                alert("Terjadi kesalahan pada server:\n" + errText);
-                console.error("Server error response:", errText);
-                throw new Error("Gagal dari server.");
+                const errorText = await res.text();
+                throw new Error(errorText);
             }
             return res.json();
         })
         .then((data) => {
-            alert(data.message || "Berhasil menyimpan data!");
+            alert(data.message || "Berhasil disimpan.");
+            closeModal();
             location.reload();
         })
         .catch((err) => {
-            console.error("Fetch error:", err);
-            alert("Gagal menyimpan data. Cek konsol.");
+            console.error("Error:", err);
+            alert("Gagal menyimpan data: " + err.message);
+        })
+        .finally(() => {
+            // Menyalakan kembali tombol simpan
+            saveButton.disabled = false;
+            saveButton.textContent =
+                currentMode === "add" ? "Simpan" : "Update";
         });
 }
 
-// Buka modal konfirmasi hapus
-function openDeleteModal(id) {
+// Hapus Resep
+function openDeleteModal(id, nama) {
     deleteTargetId = id;
-
-    const titleEl = document.getElementById(`judul-${id}`);
-    const judul = titleEl ? titleEl.textContent.trim() : "data ini";
-
-    document.getElementById("deleteTitle").textContent = `"${judul}"`;
-
-    const modal = document.getElementById("deleteModalOverlay");
-    modal.style.display = "flex";
+    document.getElementById("deleteTitle").textContent = `"${nama}"`;
+    document.getElementById("deleteModalOverlay").style.display = "flex";
 }
 
-// Tutup modal konfirmasi hapus
 function closeDeleteModal() {
     deleteTargetId = null;
     document.getElementById("deleteModalOverlay").style.display = "none";
 }
 
-// Konfirmasi hapus data
 function confirmDelete() {
     if (!deleteTargetId) return;
 
-    fetch(`/api/berita/${deleteTargetId}`, {
+    fetch(`/api/resep/${deleteTargetId}`, {
         method: "DELETE",
+        headers: {
+            "X-Requested-With": "XMLHttpRequest",
+        },
     })
-        .then((res) => {
-            if (!res.ok) throw new Error("Gagal menghapus data.");
+        .then(async (res) => {
+            if (!res.ok) {
+                const errorText = await res.text();
+                throw new Error(errorText);
+            }
             return res.json();
         })
         .then((data) => {
@@ -160,26 +233,77 @@ function confirmDelete() {
             location.reload();
         })
         .catch((err) => {
-            console.error(err);
-            alert("Gagal menghapus data.");
-            closeDeleteModal();
+            console.error("Error:", err);
+            alert("Gagal menghapus data: " + err.message);
         });
 }
 
-// Event Listener tombol modal hapus
-document.getElementById("cancelDeleteBtn").addEventListener("click", () => {
-    closeDeleteModal();
-});
-
-document.getElementById("confirmDeleteBtn").addEventListener("click", () => {
-    confirmDelete();
-});
-
+// Gambar Preview
 document.getElementById("gambarInput").addEventListener("change", function () {
     const file = this.files[0];
+    const preview = document.getElementById("imagePreview");
     if (file) {
-        const preview = document.getElementById("imagePreview");
+        // Validasi file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            alert("Ukuran file terlalu besar! Maksimal 5MB.");
+            this.value = "";
+            preview.style.display = "none";
+            return;
+        }
+
+        // Validasi file type
+        if (!file.type.startsWith("image/")) {
+            alert("File harus berupa gambar!");
+            this.value = "";
+            preview.style.display = "none";
+            return;
+        }
+
         preview.src = URL.createObjectURL(file);
         preview.style.display = "block";
+
+        // Menghapus URL object setelah preview dimuat
+        preview.onload = function () {
+            URL.revokeObjectURL(this.src);
+        };
+    } else {
+        preview.src = "";
+        preview.style.display = "none";
     }
+});
+
+// Event Listeners
+document.addEventListener("DOMContentLoaded", function () {
+    // Modal close events
+    document
+        .getElementById("cancelDeleteBtn")
+        .addEventListener("click", closeDeleteModal);
+    document
+        .getElementById("confirmDeleteBtn")
+        .addEventListener("click", confirmDelete);
+
+    // Close modal when clicking overlay
+    document
+        .getElementById("modalOverlay")
+        .addEventListener("click", function (e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+    document
+        .getElementById("deleteModalOverlay")
+        .addEventListener("click", function (e) {
+            if (e.target === this) {
+                closeDeleteModal();
+            }
+        });
+
+    // Escape key to close modals
+    document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape") {
+            closeModal();
+            closeDeleteModal();
+        }
+    });
 });
