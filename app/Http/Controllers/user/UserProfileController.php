@@ -1,74 +1,71 @@
 <?php
 
-namespace App\Http\Controllers\user;
+namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Http\Requests\UserUpdateProfileRequest;
 use App\Http\Requests\UserUpdatePhotoRequest;
 use App\Http\Requests\UserChangePasswordRequest;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Hash;
 
 class UserProfileController extends Controller
 {
+    // Menampilkan profil user
     public function show(Request $request)
     {
         $user = $request->user();
 
-        if ($user->foto) {
-            $user->foto = \Storage::disk('public')->url($user->foto);
-        } else {
-            $user->foto = null;
-        }
+        $user->foto = $user->foto
+            ? Storage::disk('public')->url($user->foto)
+            : null;
 
         return response()->json($user);
     }
 
-    // Melakukan update profil user
+    // Mengupdate profil user (termasuk foto jika ada)
     public function update(UserUpdateProfileRequest $request)
     {
         $user = $request->user();
         $data = $request->validated();
 
         if ($request->hasFile('foto')) {
-            if ($user->foto && \Storage::disk('public')->exists($user->foto)) {
-                \Storage::disk('public')->delete($user->foto);
+            // Hapus foto lama jika ada
+            if ($user->foto && Storage::disk('public')->exists($user->foto)) {
+                Storage::disk('public')->delete($user->foto);
             }
 
-            $path = $request->file('foto')->store('foto', 'public');
-            $data['foto'] = $path;
+            $data['foto'] = $request->file('foto')->store('foto', 'public');
         } else {
             unset($data['foto']);
         }
 
         $user->update($data);
 
-        if ($user->foto) {
-            $user->foto = \Storage::disk('public')->url($user->foto);
-        } else {
-            $user->foto = null;
-        }
+        $user->foto = $user->foto
+            ? Storage::disk('public')->url($user->foto)
+            : null;
 
         return response()->json([
-            'message' => 'Profil berhasil diperbarui',
+            'message' => 'Profil berhasil diperbarui.',
             'user' => $user,
         ]);
     }
 
-    // Melakukan update foto
+    // Hanya update foto profil
     public function updatePhoto(UserUpdatePhotoRequest $request)
     {
         $user = $request->user();
 
-        if ($user->foto && \Storage::disk('public')->exists($user->foto)) {
-            \Storage::disk('public')->delete($user->foto);
+        if ($user->foto && Storage::disk('public')->exists($user->foto)) {
+            Storage::disk('public')->delete($user->foto);
         }
 
-        $path = $request->file('foto')->store('foto', 'public');
-
-        $user->foto = $path;
+        $user->foto = $request->file('foto')->store('foto', 'public');
         $user->save();
 
-        $user->foto = \Storage::disk('public')->url($user->foto);
+        $user->foto = Storage::disk('public')->url($user->foto);
 
         return response()->json([
             'message' => 'Foto profil berhasil diperbarui.',
@@ -76,12 +73,12 @@ class UserProfileController extends Controller
         ]);
     }
 
-    //Mengubah kata sandi
+    // Mengubah password
     public function changePassword(UserChangePasswordRequest $request)
     {
         $user = $request->user();
 
-        $user->password = bcrypt($request->new_password);
+        $user->password = Hash::make($request->new_password);
         $user->save();
 
         return response()->json([

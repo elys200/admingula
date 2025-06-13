@@ -1,7 +1,8 @@
 let currentMode = "add";
 let currentEditId = null;
-let deleteTargetId = null; // ID berita yang akan dihapus
+let deleteTargetId = null;
 
+// Buka modal
 function openModal(mode, id = null) {
     currentMode = mode;
     currentEditId = id;
@@ -13,9 +14,10 @@ function openModal(mode, id = null) {
 
     if (mode === "add") {
         clearForm();
-    } else {
-        document.getElementById("modalOverlay").classList.add("loading");
-        fetch(`/api/kategori_gula/${id}`)
+    }
+
+    if (mode === "edit") {
+        fetch(`/api/v1/kategori_gula/${id}`)
             .then((res) => {
                 if (!res.ok) throw new Error("Data tidak ditemukan");
                 return res.json();
@@ -33,130 +35,112 @@ function openModal(mode, id = null) {
             .catch((err) => {
                 alert("Gagal memuat data untuk diedit.");
                 console.error(err);
-            })
-            .finally(() => {
-                document
-                    .getElementById("modalOverlay")
-                    .classList.remove("loading");
             });
     }
 
     document.getElementById("modalOverlay").classList.add("active");
 }
 
-// Fungsi tutup modal tambah/edit
+// Tutup modal
 function closeModal() {
     document.getElementById("modalOverlay").classList.remove("active");
     clearForm();
 }
 
-// Bersihkan form tambah/edit
+// Bersihkan form
 function clearForm() {
-    document
-        .querySelectorAll("#modalForm input, #modalForm textarea")
-        .forEach((input) => {
-            input.value = "";
-        });
+    document.getElementById("namaInput").value = "";
+    document.getElementById("gulaMinInput").value = "";
+    document.getElementById("gulaMaxInput").value = "";
+    document.getElementById("deskripsiInput").value = "";
 }
 
-// Simpan data tambah/edit
+// Simpan data
 function saveData() {
-    const nama = document.getElementById("namaInput").value.trim();
+    const nama = document
+        .getElementById("namaInput")
+        .value.trim()
+        .toLowerCase();
     const gulaMin = document.getElementById("gulaMinInput").value.trim();
     const gulaMax = document.getElementById("gulaMaxInput").value.trim();
     const deskripsi = document.getElementById("deskripsiInput").value.trim();
 
-    if (!nama || !gulaMin || !gulaMax) {
-        alert("Field Nama, Gula Minimal, dan Gula Maksimal wajib diisi!");
+    // Validasi nama
+    const allowedNama = ["low", "normal", "high"];
+    if (!allowedNama.includes(nama)) {
+        alert("Nama harus salah satu dari: low, normal, atau high.");
         return;
     }
 
-    const data = {
-        nama,
-        gula_min: gulaMin,
-        gula_max: gulaMax,
-        deskripsi,
-    };
+    // Validasi gula_min
+    const minVal = parseFloat(gulaMin);
+    if (isNaN(minVal) || minVal < 0 || minVal > 999999.99) {
+        alert("Gula Minimal harus berupa angka antara 0 hingga 999999.99");
+        return;
+    }
 
-    const url =
-        currentMode === "add"
-            ? "/api/kategori_gula"
-            : `/api/kategori_gula/${currentEditId}`;
-    const method = currentMode === "add" ? "POST" : "PUT";
+    // Validasi gula_max (jika diisi)
+    let maxVal = null;
+    if (gulaMax) {
+        maxVal = parseFloat(gulaMax);
+        if (isNaN(maxVal)) {
+            alert("Gula Maksimal harus berupa angka jika diisi.");
+            return;
+        }
+        if (maxVal < minVal) {
+            alert(
+                "Gula Maksimal harus lebih besar atau sama dengan Gula Minimal."
+            );
+            return;
+        }
+    }
+
+    // Validasi deskripsi panjang maksimal
+    if (deskripsi.length > 255) {
+        alert("Deskripsi tidak boleh lebih dari 255 karakter.");
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append("nama", nama);
+    formData.append("gula_min", gulaMin);
+    formData.append("gula_max", gulaMax); // boleh kosong
+    formData.append("deskripsi", deskripsi);
+
+    let url = "/api/v1/kategori_gula";
+    let method = "POST";
+    if (currentMode === "edit") {
+        url = `/api/v1/kategori_gula/${currentEditId}`;
+        formData.append("_method", "PUT");
+    }
 
     fetch(url, {
         method: method,
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
+        body: formData,
     })
         .then(async (res) => {
             if (!res.ok) {
                 const errText = await res.text();
                 alert("Terjadi kesalahan pada server:\n" + errText);
-                throw new Error(errText);
+                console.error("Server error response:", errText);
+                throw new Error("Gagal dari server.");
             }
             return res.json();
         })
         .then((data) => {
             alert(data.message || "Berhasil menyimpan data!");
-            closeModal();
-            updateTable();
-        })
-        .catch((err) => {
-            console.error(err);
-            alert("Gagal menyimpan data. Cek konsol untuk detail.");
-        });
-}
-
-// Buka modal konfirmasi hapus
-function openDeleteModal(id) {
-    deleteTargetId = id;
-
-    const titleEl = document.getElementById(`judul-${id}`);
-    const judul = titleEl ? titleEl.textContent.trim() : "data ini";
-
-    document.getElementById("deleteTitle").textContent = `"${judul}"`;
-
-    const modal = document.getElementById("deleteModalOverlay");
-    modal.style.display = "flex";
-}
-
-// Tutup modal konfirmasi hapus
-function closeDeleteModal() {
-    deleteTargetId = null;
-    document.getElementById("deleteModalOverlay").style.display = "none";
-}
-
-// Konfirmasi hapus data
-function confirmDelete() {
-    if (!deleteTargetId) return;
-
-    fetch(`/api/berita/${deleteTargetId}`, {
-        method: "DELETE",
-    })
-        .then((res) => {
-            if (!res.ok) throw new Error("Gagal menghapus data.");
-            return res.json();
-        })
-        .then((data) => {
-            alert(data.message || "Data berhasil dihapus!");
-            closeDeleteModal();
             location.reload();
         })
         .catch((err) => {
-            console.error(err);
-            alert("Gagal menghapus data.");
-            closeDeleteModal();
+            console.error("Fetch error:", err);
+            alert("Gagal menyimpan data. Cek konsol.");
         });
 }
 
-// Event Listener tombol modal hapus
+// Event listener tombol konfirmasi dan batal hapus
 document.getElementById("cancelDeleteBtn").addEventListener("click", () => {
     closeDeleteModal();
 });
-
 document.getElementById("confirmDeleteBtn").addEventListener("click", () => {
     confirmDelete();
 });

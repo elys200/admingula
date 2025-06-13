@@ -9,7 +9,7 @@ function convertTextToArray(text) {
     return text
         .split("\n")
         .map((line) => line.trim())
-        .filter((line) => line !== ""); 
+        .filter((line) => line !== "");
 }
 
 // Fungsi untuk mengonversi array ke string teks
@@ -52,8 +52,8 @@ function openModal(mode, id = null, data = null) {
             }
         }
 
-        // Ambil data detail dari API supaya data array benar-benar fresh dan valid
-        fetch(`/api/resep/${id}`)
+        // Ambil data detail dari API
+        fetch(`/api/v1/resep/${id}`)
             .then((response) => response.json())
             .then((result) => {
                 const resepData = result.data;
@@ -156,7 +156,9 @@ function saveData() {
 
     // URL & Method
     const url =
-        currentMode === "add" ? "/api/resep" : `/api/resep/${currentEditId}`;
+        currentMode === "add"
+            ? "/api/v1/resep"
+            : `/api/v1/resep/${currentEditId}`;
     const method = "POST";
 
     if (currentMode === "edit") {
@@ -214,7 +216,7 @@ function closeDeleteModal() {
 function confirmDelete() {
     if (!deleteTargetId) return;
 
-    fetch(`/api/resep/${deleteTargetId}`, {
+    fetch(`/api/v1/resep/${deleteTargetId}`, {
         method: "DELETE",
         headers: {
             "X-Requested-With": "XMLHttpRequest",

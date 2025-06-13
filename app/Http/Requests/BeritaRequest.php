@@ -26,7 +26,9 @@ class BeritaRequest extends FormRequest
         'sumber' => 'nullable|string|max:255',
         'deskripsi' => 'required|string',
         'penulis' => 'nullable|string|max:255',
+        'kategori' => 'required|in:Rekomendasi,Terbaru,Fakta Terpilih',
         'tanggalterbit' => 'required|date',
+        'link' => 'nullable|url|max:2048',
         'gambar' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
     ];
     }

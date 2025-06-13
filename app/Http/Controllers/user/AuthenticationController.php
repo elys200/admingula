@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\user;
+namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\RegisterRequest;
@@ -36,7 +36,7 @@ class AuthenticationController extends Controller
             throw $e;
         }
 
-        $token = $user->createToken('sweet_sense')->plainTextToken;
+        $token = $user->createToken('user_token', ['user'])->plainTextToken;
 
         return response([
             'user'  => $user,
@@ -49,21 +49,18 @@ class AuthenticationController extends Controller
     {
         $validated = $request->validated();
 
-        // Autentikasi manual berdasarkan username
-        $user = User::whereRaw('BINARY username = ?', [$validated['username']])->first();
+        $user = User::where('username', $validated['username'])->first();
 
         if (!$user || !Hash::check($validated['password'], $user->password)) {
-            return response([
-                'message' => 'Username atau password salah.'
-            ], 401); // 401 Unauthorized
+            return response()->json(['message' => 'Login gagal'], 401);
         }
 
-        $token = $user->createToken('sweet_sense')->plainTextToken;
+        $token = $user->createToken('user-token', ['user'])->plainTextToken;
 
-        return response([
-            'user'  => $user,
+        return response()->json([
+            'user' => $user,
             'token' => $token,
-        ], 200);
+        ]);
     }
 
     // Logout

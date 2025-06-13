@@ -23,8 +23,8 @@ class KategoriGulaRequest extends FormRequest
     {
         return [
             'nama' => 'required|string|in:low,normal,high',
-            'gula_min' => 'required|string|max:255',
-            'gula_max' => 'required|string|max:255',
+            'gula_min' => 'required|numeric|min:0|max:999999.99',
+            'gula_max' => 'nullable|numeric|gte:gula_min',
             'deskripsi' => 'nullable|string|max:255',
         ];
     }

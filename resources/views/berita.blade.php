@@ -107,7 +107,9 @@
                                         <td>Sumber</td>
                                         <td>Deskripsi</td>
                                         <td>Penulis</td>
+                                        <td>Kategori</td>
                                         <td>Tanggal Terbit</td>
+                                        <td>Link</td>
                                         <td>Gambar</td>
                                         <td>Aksi</td>
                                     </tr>
@@ -118,21 +120,35 @@
                                         <td>{{ $b->id }}</td>
                                         <td>
                                             <div id="judul-{{ $b->id }}" class="tabel-truncate" title="{{ $b->judul }}">
-                                                {{ $b->judul }}</div>
-                                        </td>
-                                        <td>
-                                            <div class="tabel-truncate" title="{{ $b->sumber }}">{{ $b->sumber }}
+                                                {{ $b->judul }}
                                             </div>
                                         </td>
                                         <td>
-                                            <div class="tabel-truncate" title="{{ $b->deskripsi }}">{{ $b->deskripsi }}
+                                            <div class="tabel-truncate" title="{{ $b->sumber }}">
+                                                {{ $b->sumber }}
                                             </div>
                                         </td>
                                         <td>
-                                            <div class="tabel-truncate" title="{{ $b->penulis }}">{{ $b->penulis }}
+                                            <div class="tabel-truncate" title="{{ $b->deskripsi }}">
+                                                {{ $b->deskripsi }}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="tabel-truncate" title="{{ $b->penulis }}">
+                                                {{ $b->penulis }}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="tabel-truncate" title="{{ $b->kategori }}">
+                                                {{ $b->kategori }}
                                             </div>
                                         </td>
                                         <td>{{ $b->tanggalterbit }}</td>
+                                        <td>
+                                            <div class="tabel-truncate" title="{{ $b->link }}">
+                                                {{ $b->link }}
+                                            </div>
+                                        </td>
                                         <td>
                                             @if($b->gambar)
                                             <img src="{{ asset('storage/' . $b->gambar) }}" alt="Gambar" width="60">
@@ -195,8 +211,23 @@
                     </div>
 
                     <div class="form-group">
+                        <label class="form-label" for="kategoriInput">Kategori</label>
+                        <select class="form-input" id="kategoriInput" required>
+                            <option value="">-- Pilih Kategori --</option>
+                            <option value="Rekomendasi">Rekomendasi</option>
+                            <option value="Terbaru">Terbaru</option>
+                            <option value="Fakta Terpilih">Fakta Terpilih</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
                         <label class="form-label" for="tanggalInput">Tanggal Terbit</label>
                         <input class="form-input" type="date" id="tanggalInput" />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="linkInput">Link</label>
+                        <input class="form-input" type="url" id="linkInput" name="link" placeholder="Masukkan link berita" />
                     </div>
 
                     <div class="form-group">

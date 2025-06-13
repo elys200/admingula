@@ -1,13 +1,12 @@
 let currentMode = "add";
 let currentEditId = null;
-let deleteTargetId = null; // ID berita yang akan dihapus
+let deleteTargetId = null;
 
 // Fungsi buka modal tambah/edit
 function openModal(mode, id = null) {
     currentMode = mode;
     currentEditId = id;
 
-    // Judul dan tombol modal
     document.getElementById("modalTitle").textContent =
         mode === "add" ? "Tambah Berita Baru" : "Edit Berita";
     document.getElementById("saveButton").textContent =
@@ -18,7 +17,7 @@ function openModal(mode, id = null) {
     }
 
     if (mode === "edit") {
-        fetch(`/api/berita/${id}`)
+        fetch(`/api/v1/berita/${id}`)
             .then((res) => {
                 if (!res.ok) throw new Error("Data tidak ditemukan");
                 return res.json();
@@ -35,6 +34,17 @@ function openModal(mode, id = null) {
                     data.penulis || "";
                 document.getElementById("tanggalInput").value =
                     data.tanggalterbit || "";
+                document.getElementById("linkInput").value = data.link || "";
+
+                const kategoriValue = (data.kategori || "")
+                    .trim()
+                    .toLowerCase();
+                const select = document.getElementById("kategoriInput");
+                [...select.options].forEach((option) => {
+                    if (option.value.toLowerCase() === kategoriValue) {
+                        option.selected = true;
+                    }
+                });
 
                 const imgPreview = document.getElementById("imagePreview");
                 if (data.gambar) {
@@ -54,27 +64,29 @@ function openModal(mode, id = null) {
     document.getElementById("modalOverlay").classList.add("active");
 }
 
-// Fungsi tutup modal tambah/edit
+// Tutup modal
 function closeModal() {
     document.getElementById("modalOverlay").classList.remove("active");
     clearForm();
 }
 
-// Bersihkan form tambah/edit
+// Bersihkan form
 function clearForm() {
     document.getElementById("judulInput").value = "";
     document.getElementById("sumberInput").value = "";
     document.getElementById("deskripsiInput").value = "";
     document.getElementById("penulisInput").value = "";
+    document.getElementById("kategoriInput").value = "";
     document.getElementById("tanggalInput").value = "";
     document.getElementById("gambarInput").value = "";
+    document.getElementById("linkInput").value = "";
 
     const imgPreview = document.getElementById("imagePreview");
     imgPreview.src = "";
     imgPreview.style.display = "none";
 }
 
-// Simpan data tambah/edit
+// Simpan data
 function saveData() {
     const formData = new FormData();
     formData.append("judul", document.getElementById("judulInput").value);
@@ -84,10 +96,12 @@ function saveData() {
         document.getElementById("deskripsiInput").value
     );
     formData.append("penulis", document.getElementById("penulisInput").value);
+    formData.append("kategori", document.getElementById("kategoriInput").value);
     formData.append(
         "tanggalterbit",
         document.getElementById("tanggalInput").value
     );
+    formData.append("link", document.getElementById("linkInput").value);
 
     const gambar = document.getElementById("gambarInput").files[0];
     if (gambar) {
@@ -95,7 +109,9 @@ function saveData() {
     }
 
     const url =
-        currentMode === "add" ? "/api/berita" : `/api/berita/${currentEditId}`;
+        currentMode === "add"
+            ? "/api/v1/berita"
+            : `/api/v1/berita/${currentEditId}`;
     const method = "POST";
 
     if (currentMode === "edit") {
@@ -125,30 +141,22 @@ function saveData() {
         });
 }
 
-// Buka modal konfirmasi hapus
-function openDeleteModal(id) {
+// Hapus
+function openDeleteModal(id, judul) {
     deleteTargetId = id;
-
-    const titleEl = document.getElementById(`judul-${id}`);
-    const judul = titleEl ? titleEl.textContent.trim() : "data ini";
-
     document.getElementById("deleteTitle").textContent = `"${judul}"`;
-
-    const modal = document.getElementById("deleteModalOverlay");
-    modal.style.display = "flex"; 
+    document.getElementById("deleteModalOverlay").style.display = "flex";
 }
 
-// Tutup modal konfirmasi hapus
 function closeDeleteModal() {
     deleteTargetId = null;
     document.getElementById("deleteModalOverlay").style.display = "none";
 }
 
-// Konfirmasi hapus data
 function confirmDelete() {
     if (!deleteTargetId) return;
 
-    fetch(`/api/berita/${deleteTargetId}`, {
+    fetch(`/api/v1/berita/${deleteTargetId}`, {
         method: "DELETE",
     })
         .then((res) => {
@@ -167,8 +175,7 @@ function confirmDelete() {
         });
 }
 
-
-// Event Listener tombol modal hapus
+// Event listener
 document.getElementById("cancelDeleteBtn").addEventListener("click", () => {
     closeDeleteModal();
 });
@@ -177,7 +184,7 @@ document.getElementById("confirmDeleteBtn").addEventListener("click", () => {
     confirmDelete();
 });
 
-// --- Preview gambar saat input file diubah ---
+// Preview gambar
 document.getElementById("gambarInput").addEventListener("change", function () {
     const file = this.files[0];
     if (file) {

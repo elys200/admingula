@@ -125,7 +125,7 @@
                                     <td>
                                         <div class="icon-group">
                                             <iconify-icon icon="uil:edit" width="24" style="color: #E9B310"
-                                                onclick='openModal("edit", {{ $kg->id }}, @json($kg))'></iconify-icon>
+                                                onclick='openModal("edit", {{ $kg->id }})'></iconify-icon>
                                             <iconify-icon icon="heroicons:trash-16-solid" width="24"
                                                 style="color: #E43A15"
                                                 onclick="openDeleteModal({{ $kg->id }}, '{{ addslashes($kg->nama) }}')">
@@ -197,10 +197,10 @@
                 <path stroke-linecap="round" stroke-linejoin="round"
                     d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
             </svg>
-            <p>Hapus Berita</p>
-            <p>Apakah kamu yakin ingin menghapus berita ini? <span id="deleteTitle"></span>?</p>
+            <p>Hapus Kategori</p>
+            <p>Apakah kamu yakin ingin menghapus kategori ini? <span id="deleteTitle"></span>?</p>
             <div class="button-container">
-                <button id="confirmDeleteBtn">Ya, hapus berita</button>
+                <button id="confirmDeleteBtn">Ya, hapus kategori</button>
                 <button id="cancelDeleteBtn">Tidak</button>
             </div>
         </div>
