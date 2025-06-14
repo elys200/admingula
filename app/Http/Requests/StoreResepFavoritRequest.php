@@ -21,8 +21,6 @@ class StoreResepFavoritRequest extends FormRequest
     public function messages()
     {
         return [
-            'user_id.required' => 'User ID wajib diisi',
-            'user_id.exists' => 'User tidak ditemukan',
             'resep_id.required' => 'Resep ID wajib diisi',
             'resep_id.exists' => 'Resep tidak ditemukan',
         ];

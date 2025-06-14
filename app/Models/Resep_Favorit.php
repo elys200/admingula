@@ -10,17 +10,20 @@ class Resep_Favorit extends Model
 
     protected $fillable = ['user_id', 'resep_id'];
 
-    protected $casts = [
-        'user_id' => 'string',
-        'resep_id' => 'string',
-    ];
+    public $incrementing = false; 
+    protected $primaryKey = ['user_id', 'resep_id'];
+    public $timestamps = true;
+    protected function setKeysForSaveQuery($query)
+    {
+        return $query->where('user_id', $this->user_id)
+                    ->where('resep_id', $this->resep_id);
+    }
 
     public function resep()
     {
         return $this->belongsTo(Resep_Makanan::class, 'resep_id');
     }
 
-    // Relasi ke user
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');

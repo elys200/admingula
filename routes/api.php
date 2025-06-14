@@ -47,7 +47,7 @@ Route::prefix('v1')->group(function () {
         // Resep Favorit
         Route::prefix('resep-favorit')->group(function () {
             Route::get('/', [ResepFavoritController::class, 'show']);
-            Route::post('/', [ResepFavoritController::class, 'store']);
+            Route::post('/toggle', [ResepFavoritController::class, 'toggle']);
         });
     });
 
