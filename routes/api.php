@@ -61,6 +61,9 @@ Route::prefix('v1')->group(function () {
         Route::get('/kategori/{kategori}', [BeritaController::class, 'kategori']);
     });
 
+    // Berita untuk mobile
+    Route::get('/berita-all', [BeritaController::class, 'getAll']);
+
     // Resep CRUD
     Route::prefix('resep')->group(function () {
         Route::get('/', [ResepController::class, 'index']);
@@ -69,6 +72,10 @@ Route::prefix('v1')->group(function () {
         Route::put('/{id}', [ResepController::class, 'update']);
         Route::delete('/{id}', [ResepController::class, 'destroy']);
     });
+
+    // Resep untuk mobile
+    Route::get('/resep-all', [ResepController::class, 'getAll']);
+
 
     // Kategori Gula CRUD
     Route::prefix('kategori_gula')->group(function () {

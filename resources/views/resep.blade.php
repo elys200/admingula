@@ -94,8 +94,11 @@
                             </iconify-icon>
                             <span class="btn-text">Tambah Data</span>
                         </button>
-                        <div class="search-box">
-                            <iconify-icon icon="material-symbols:search-rounded" width="24" height="24"></iconify-icon>
+                        <div class="search-wrapper">
+                            <iconify-icon icon="material-symbols:search-rounded" width="24" height="24"
+                                class="search-icon" onclick="toggleSearch()"></iconify-icon>
+                            <input type="text" id="searchInput" placeholder="Cari nama resep..." class="search-input"
+                                oninput="handleSearch(this)" />
                         </div>
                     </div>
 
@@ -117,7 +120,6 @@
                                     <td>Aksi</td>
                                 </tr>
                             </thead>
-                            <!-- Perbaikan untuk bagian tbody tabel di view -->
                             <tbody id="table-body">
                                 @foreach ($resep as $r)
                                 <tr>
@@ -204,6 +206,7 @@
                             </tbody>
                         </table>
                     </div>
+                    <div id="pagination" class="pagination"></div>
                 </div>
             </div>
         </div>

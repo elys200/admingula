@@ -314,6 +314,13 @@ body {
     background-color: #d9d9d9;
 }
 
+td img {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
 .topbar2 {
     width: 1150px;
     height: 60px;
@@ -734,6 +741,24 @@ body {
     overflow: hidden;
     text-overflow: ellipsis;
 }
+.truncate-wrapper {
+    max-width: 300px;
+    margin: 0 auto;
+}
+
+.truncate-2-line {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 300px;
+    margin: 0 auto;
+    line-height: 1.4em;
+    max-height: calc(1.4em * 2);
+    font-weight: 500;
+}
 
 /* Container tombol */
 #deleteModalOverlay .button-container {
@@ -780,4 +805,71 @@ body {
         width: auto;
         flex: 1;
     }
+}
+
+.pagination {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.page-button {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: var(--gray);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--black1);
+    transition: background-color 0.2s ease;
+}
+
+.page-button:hover {
+    background-color: #e0e0e0;
+}
+
+.page-button.active {
+    background-color: var(--red);
+    color: var(--white);
+}
+
+.page-button svg {
+    width: 16px;
+    height: 16px;
+    stroke: var(--black2);
+}
+.search-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.search-icon {
+    cursor: pointer;
+    color: #444;
+}
+
+.search-input {
+    width: 0;
+    opacity: 0;
+    margin-left: 8px;
+    padding: 6px 10px;
+    border: 1px solid #ccc;
+    border-radius: 20px;
+    transition: all 0.3s ease;
+    font-size: 14px;
+    outline: none;
+    background: white;
+}
+
+/* Ketika aktif */
+.search-wrapper.active .search-input {
+    width: 180px;
+    opacity: 1;
 }

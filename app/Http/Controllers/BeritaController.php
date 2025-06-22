@@ -4,44 +4,51 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\BeritaRequest;
 use App\Models\Berita;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class BeritaController extends Controller
 {
+    // Tampilkan halaman view dengan pagination
     public function view()
     {
-        $berita = Berita::all();
+        $berita = Berita::paginate(4); // Default 4 per halaman
         return view('berita', compact('berita'));
     }
 
-    // Ambil semua data berita
-    public function index()
+    // API: Ambil data berita dengan search & pagination
+    public function index(Request $request)
     {
-        return response()->json(Berita::all());
-    }
+        $perPage = $request->get('per_page', 4);
+        $query = Berita::query();
 
-    // Ambil berita berdasarkan kategori (Rekomendasi, Terbaru, Fakta Terpilih)
-    public function kategori($kategori)
-    {
-        // Validasi kategori yang diperbolehkan
-        $allowedKategori = ['Rekomendasi', 'Terbaru', 'Fakta Terpilih'];
-
-        if (!in_array($kategori, $allowedKategori)) {
-            return response()->json([
-                'message' => 'Kategori tidak valid.',
-            ], 400);
+        if ($request->has('search')) {
+            $search = $request->get('search');
+            $query->where('judul', 'like', "%{$search}%");
         }
 
-        $berita = Berita::where('kategori', $kategori)->get();
+        $berita = $query->paginate($perPage);
 
         return response()->json([
-            'message' => "Berita kategori: $kategori",
-            'data' => $berita
+            'data' => $berita->items(),
+            'current_page' => $berita->currentPage(),
+            'last_page' => $berita->lastPage(),
+            'per_page' => $berita->perPage(),
+            'total' => $berita->total(),
+            'from' => $berita->firstItem(),
+            'to' => $berita->lastItem(),
+            'prev_page_url' => $berita->previousPageUrl(),
+            'next_page_url' => $berita->nextPageUrl(),
         ]);
     }
 
-    // Simpan berita baru
+        public function getAll()
+    {
+        $beritas = Berita::all();
+        return response()->json($beritas);
+    }
+
+    // Simpan data berita baru
     public function store(BeritaRequest $request)
     {
         $data = $request->validated();
@@ -58,7 +65,7 @@ class BeritaController extends Controller
         ]);
     }
 
-    // Tampilkan detail berita berdasarkan ID
+    // Ambil detail berita
     public function show($id)
     {
         $berita = Berita::findOrFail($id);
@@ -68,7 +75,7 @@ class BeritaController extends Controller
         ]);
     }
 
-    // Update berita berdasarkan ID
+    // Perbarui berita
     public function update(BeritaRequest $request, $id)
     {
         $berita = Berita::findOrFail($id);
@@ -101,5 +108,24 @@ class BeritaController extends Controller
         $berita->delete();
 
         return response()->json(['message' => 'Data berhasil dihapus']);
+    }
+
+    // Optional: Ambil berdasarkan kategori
+    public function kategori($kategori)
+    {
+        $allowedKategori = ['Rekomendasi', 'Terbaru', 'Fakta Terpilih'];
+
+        if (!in_array($kategori, $allowedKategori)) {
+            return response()->json([
+                'message' => 'Kategori tidak valid.',
+            ], 400);
+        }
+
+        $berita = Berita::where('kategori', $kategori)->get();
+
+        return response()->json([
+            'message' => "Berita kategori: $kategori",
+            'data' => $berita
+        ]);
     }
 }

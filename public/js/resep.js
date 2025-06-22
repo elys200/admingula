@@ -1,76 +1,78 @@
-let currentMode = "add";
-let currentEditId = null;
-let deleteTargetId = null;
+// Global variables
+let currentMode = "add",
+    currentEditId = null,
+    deleteTargetId = null;
+let currentPage = 1,
+    currentSearchQuery = "",
+    isLoading = false;
 
-// Fungsi untuk mengonversi textarea ke array
-function convertTextToArray(text) {
-    if (!text || text.trim() === "") return [];
+// Utility functions
+const convertTextToArray = (text) =>
+    text?.trim()
+        ? text
+            .split("\n")
+            .map((l) => l.trim())
+            .filter(Boolean)
+        : [];
+const convertArrayToText = (arr) => (Array.isArray(arr) ? arr.join("\n") : "");
+const safeParse = (field) => {
+    if (!field) return [];
+    if (Array.isArray(field)) return field;
+    try {
+        return Array.isArray(JSON.parse(field)) ? JSON.parse(field) : [];
+    } catch {
+        return [];
+    }
+};
 
-    return text
-        .split("\n")
-        .map((line) => line.trim())
-        .filter((line) => line !== "");
-}
-
-// Fungsi untuk mengonversi array ke string teks
-function convertArrayToText(arr) {
-    if (!Array.isArray(arr)) return "";
-    return arr.join("\n");
-}
-
-// Modal Tambah / Edit
+// Modal functions
 function openModal(mode, id = null, data = null) {
     currentMode = mode;
     currentEditId = id;
-
     document.getElementById("modalTitle").textContent =
         mode === "add" ? "Tambah Resep Baru" : "Edit Resep";
     document.getElementById("saveButton").textContent =
         mode === "add" ? "Simpan" : "Update";
-
     clearForm();
 
     if (mode === "edit" && data) {
-        // Set basic data
-        document.getElementById("namaInput").value = data.nama || "";
-        document.getElementById("deskripsiInput").value = data.deskripsi || "";
-        document.getElementById("kaloriInput").value = data.total_kalori || "";
-        document.getElementById("karbohidratInput").value =
-            data.total_karbohidrat || "";
-        document.getElementById("lemakInput").value = data.total_lemak || "";
-        document.getElementById("gulaInput").value = data.kadar_gula || "";
+        // Fill basic fields
+        [
+            "nama",
+            "deskripsi",
+            "total_kalori",
+            "total_karbohidrat",
+            "total_lemak",
+            "kadar_gula",
+        ].forEach((field) => {
+            const input = document.getElementById(
+                field === "total_kalori"
+                    ? "kaloriInput"
+                    : field === "total_karbohidrat"
+                    ? "karbohidratInput"
+                    : field === "total_lemak"
+                    ? "lemakInput"
+                    : field === "kadar_gula"
+                    ? "gulaInput"
+                    : field + "Input"
+            );
+            if (input) input.value = data[field] || "";
+        });
 
-        // Fungsi helper untuk parse string JSON ke array dengan aman
-        function safeParse(field) {
-            if (!field) return [];
-            if (Array.isArray(field)) return field;
-            try {
-                const parsed = JSON.parse(field);
-                return Array.isArray(parsed) ? parsed : [];
-            } catch {
-                return [];
-            }
-        }
-
-        // Ambil data detail dari API
+        // Fill array fields
         fetch(`/api/v1/resep/${id}`)
-            .then((response) => response.json())
+            .then((res) => res.json())
             .then((result) => {
-                const resepData = result.data;
-
-                // Set textarea dengan data parsed
+                const r = result.data;
                 document.getElementById("panduanInput").value =
-                    convertArrayToText(safeParse(resepData.panduan));
+                    convertArrayToText(safeParse(r.panduan));
                 document.getElementById("bahanInput").value =
-                    convertArrayToText(safeParse(resepData.bahan));
+                    convertArrayToText(safeParse(r.bahan));
                 document.getElementById("tipsInput").value = convertArrayToText(
-                    safeParse(resepData.tips)
+                    safeParse(r.tips)
                 );
             })
-            .catch((error) => {
-                console.error("Error loading data:", error);
-
-                // Fallback pakai data awal yang sudah diterima
+            .catch(() => {
                 document.getElementById("panduanInput").value =
                     convertArrayToText(safeParse(data.panduan));
                 document.getElementById("bahanInput").value =
@@ -80,14 +82,13 @@ function openModal(mode, id = null, data = null) {
                 );
             });
 
-        // Set preview gambar jika ada
+        // Show image preview
         if (data.gambar) {
             const preview = document.getElementById("imagePreview");
             preview.src = `/storage/${data.gambar}`;
             preview.style.display = "block";
         }
     }
-
     document.getElementById("modalOverlay").classList.add("active");
 }
 
@@ -96,112 +97,90 @@ function closeModal() {
 }
 
 function clearForm() {
-    document.getElementById("namaInput").value = "";
-    document.getElementById("deskripsiInput").value = "";
-    document.getElementById("panduanInput").value = "";
-    document.getElementById("tipsInput").value = "";
-    document.getElementById("kaloriInput").value = "";
-    document.getElementById("karbohidratInput").value = "";
-    document.getElementById("lemakInput").value = "";
-    document.getElementById("gulaInput").value = "";
-    document.getElementById("bahanInput").value = "";
-    document.getElementById("imagePreview").style.display = "none";
-    document.getElementById("gambarInput").value = "";
+    [
+        "nama",
+        "deskripsi",
+        "panduan",
+        "tips",
+        "kalori",
+        "karbohidrat",
+        "lemak",
+        "gula",
+        "bahan",
+    ].forEach((id) => {
+        const element = document.getElementById(id + "Input");
+        if (element) element.value = "";
+    });
+
+    const imagePreview = document.getElementById("imagePreview");
+    const gambarInput = document.getElementById("gambarInput");
+    if (imagePreview) imagePreview.style.display = "none";
+    if (gambarInput) gambarInput.value = "";
 }
 
-// Tambah/Edit Resep
 function saveData() {
-    const formData = new FormData();
-
-    // Validasi input required
     const nama = document.getElementById("namaInput").value.trim();
-    if (!nama) {
-        alert("Nama resep harus diisi!");
-        return;
-    }
+    if (!nama) return alert("Nama resep harus diisi!");
 
-    formData.append("nama", nama);
-    formData.append(
-        "deskripsi",
-        document.getElementById("deskripsiInput").value
+    const formData = new FormData();
+    const fields = {
+        nama,
+        deskripsi: document.getElementById("deskripsiInput").value,
+        total_kalori: document.getElementById("kaloriInput").value,
+        total_karbohidrat: document.getElementById("karbohidratInput").value,
+        total_lemak: document.getElementById("lemakInput").value,
+        kadar_gula: document.getElementById("gulaInput").value,
+        panduan: JSON.stringify(
+            convertTextToArray(document.getElementById("panduanInput").value)
+        ),
+        bahan: JSON.stringify(
+            convertTextToArray(document.getElementById("bahanInput").value)
+        ),
+        tips: JSON.stringify(
+            convertTextToArray(document.getElementById("tipsInput").value)
+        ),
+    };
+
+    Object.entries(fields).forEach(([key, value]) =>
+        formData.append(key, value)
     );
-    formData.append(
-        "total_kalori",
-        document.getElementById("kaloriInput").value
-    );
-    formData.append(
-        "total_karbohidrat",
-        document.getElementById("karbohidratInput").value
-    );
-    formData.append("total_lemak", document.getElementById("lemakInput").value);
-    formData.append("kadar_gula", document.getElementById("gulaInput").value);
-
-    // Mengubah input teks menjadi array
-    const panduanText = document.getElementById("panduanInput").value;
-    const panduanArray = convertTextToArray(panduanText);
-    formData.append("panduan", JSON.stringify(panduanArray));
-
-    const bahanText = document.getElementById("bahanInput").value;
-    const bahanArray = convertTextToArray(bahanText);
-    formData.append("bahan", JSON.stringify(bahanArray));
-
-    const tipsText = document.getElementById("tipsInput").value;
-    const tipsArray = convertTextToArray(tipsText);
-    formData.append("tips", JSON.stringify(tipsArray));
 
     const gambar = document.getElementById("gambarInput").files[0];
-    if (gambar) {
-        formData.append("gambar", gambar);
-    }
+    if (gambar) formData.append("gambar", gambar);
 
-    // URL & Method
     const url =
         currentMode === "add"
             ? "/api/v1/resep"
             : `/api/v1/resep/${currentEditId}`;
-    const method = "POST";
+    if (currentMode === "edit") formData.append("_method", "PUT");
 
-    if (currentMode === "edit") {
-        formData.append("_method", "PUT");
-    }
-
-    // Menonaktifkan tombol simpan sementara
     const saveButton = document.getElementById("saveButton");
     saveButton.disabled = true;
     saveButton.textContent = "Menyimpan...";
 
     fetch(url, {
-        method,
+        method: "POST",
         body: formData,
-        headers: {
-            "X-Requested-With": "XMLHttpRequest",
-        },
+        headers: { "X-Requested-With": "XMLHttpRequest" },
     })
         .then(async (res) => {
-            if (!res.ok) {
-                const errorText = await res.text();
-                throw new Error(errorText);
-            }
+            if (!res.ok) throw new Error(await res.text());
             return res.json();
         })
         .then((data) => {
             alert(data.message || "Berhasil disimpan.");
             closeModal();
-            location.reload();
+            loadResep(currentPage);
         })
-        .catch((err) => {
-            console.error("Error:", err);
-            alert("Gagal menyimpan data: " + err.message);
-        })
+        .catch((err) => alert("Gagal menyimpan data: " + err.message))
         .finally(() => {
-            // Menyalakan kembali tombol simpan
             saveButton.disabled = false;
             saveButton.textContent =
                 currentMode === "add" ? "Simpan" : "Update";
         });
 }
 
-// Hapus Resep
+// Delete functions
 function openDeleteModal(id, nama) {
     deleteTargetId = id;
     document.getElementById("deleteTitle").textContent = `"${nama}"`;
@@ -218,94 +197,288 @@ function confirmDelete() {
 
     fetch(`/api/v1/resep/${deleteTargetId}`, {
         method: "DELETE",
-        headers: {
-            "X-Requested-With": "XMLHttpRequest",
-        },
+        headers: { "X-Requested-With": "XMLHttpRequest" },
     })
         .then(async (res) => {
-            if (!res.ok) {
-                const errorText = await res.text();
-                throw new Error(errorText);
-            }
+            if (!res.ok) throw new Error(await res.text());
             return res.json();
         })
         .then((data) => {
             alert(data.message || "Data berhasil dihapus!");
             closeDeleteModal();
-            location.reload();
+            loadResep(currentPage);
         })
-        .catch((err) => {
-            console.error("Error:", err);
-            alert("Gagal menghapus data: " + err.message);
+        .catch((err) => alert("Gagal menghapus data: " + err.message));
+}
+
+// Load and display data
+function loadResep(page = 1) {
+    if (isLoading) return;
+
+    isLoading = true;
+    currentPage = page;
+
+    const tableBody = document.querySelector("#table-body");
+    if (tableBody)
+        tableBody.innerHTML =
+            '<tr><td colspan="12" style="text-align: center;">Loading...</td></tr>';
+
+    const searchParam = currentSearchQuery
+        ? `&search=${encodeURIComponent(currentSearchQuery)}`
+        : "";
+
+    fetch(`/api/v1/resep?page=${page}${searchParam}`)
+        .then((res) => {
+            if (!res.ok) throw new Error("Network response was not ok");
+            return res.json();
+        })
+        .then((data) => {
+            updateTableContent(data.data);
+            renderPagination(data);
+        })
+        .catch((error) => {
+            console.error("Error loading resep:", error);
+            if (tableBody)
+                tableBody.innerHTML =
+                    '<tr><td colspan="12" style="text-align: center;">Error loading data</td></tr>';
+        })
+        .finally(() => {
+            isLoading = false;
         });
 }
 
-// Gambar Preview
-document.getElementById("gambarInput").addEventListener("change", function () {
-    const file = this.files[0];
-    const preview = document.getElementById("imagePreview");
-    if (file) {
-        // Validasi file size (max 5MB)
-        if (file.size > 5 * 1024 * 1024) {
-            alert("Ukuran file terlalu besar! Maksimal 5MB.");
-            this.value = "";
-            preview.style.display = "none";
-            return;
-        }
+function updateTableContent(data) {
+    const tableBody = document.querySelector("#table-body");
+    if (!tableBody) return;
 
-        // Validasi file type
-        if (!file.type.startsWith("image/")) {
-            alert("File harus berupa gambar!");
-            this.value = "";
-            preview.style.display = "none";
-            return;
-        }
-
-        preview.src = URL.createObjectURL(file);
-        preview.style.display = "block";
-
-        // Menghapus URL object setelah preview dimuat
-        preview.onload = function () {
-            URL.revokeObjectURL(this.src);
-        };
-    } else {
-        preview.src = "";
-        preview.style.display = "none";
+    if (!data || data.length === 0) {
+        tableBody.innerHTML =
+            '<tr><td colspan="12" style="text-align: center;">Tidak ada data</td></tr>';
+        return;
     }
-});
 
-// Event Listeners
+    const processArrayData = (field) => {
+        let fieldData = field;
+        if (typeof fieldData === "string") {
+            try {
+                const parsed = JSON.parse(fieldData);
+                fieldData = Array.isArray(parsed) ? parsed : [fieldData];
+            } catch {
+                fieldData = [fieldData];
+            }
+        } else if (!Array.isArray(fieldData)) {
+            fieldData = fieldData ? [fieldData] : [];
+        }
+        return fieldData.filter((item) => item).join(", ");
+    };
+
+    tableBody.innerHTML = data
+        .map((r) => {
+            const panduanText = processArrayData(r.panduan);
+            const bahanText = processArrayData(r.bahan);
+            const tipsText = processArrayData(r.tips);
+            const escapedData = JSON.stringify(r)
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#39;");
+            const escapedNama = (r.nama || "")
+                .replace(/'/g, "&#39;")
+                .replace(/"/g, "&quot;");
+
+            return `
+            <tr>
+                <td>${r.id}</td>
+                <td><div class="tabel-truncate" title="${escapedNama}">${
+                r.nama
+            }</div></td>
+                <td><div class="tabel-truncate" title="${(
+                    r.deskripsi || ""
+                ).replace(/"/g, "&quot;")}">${r.deskripsi || ""}</div></td>
+                <td><div class="tabel-truncate" title="${panduanText.replace(
+                    /"/g,
+                    "&quot;"
+                )}">${panduanText}</div></td>
+                <td>${r.total_kalori || ""}</td>
+                <td>${r.total_karbohidrat || ""}</td>
+                <td>${r.total_lemak || ""}</td>
+                <td>${r.kadar_gula || ""}</td>
+                <td><div class="tabel-truncate" title="${bahanText.replace(
+                    /"/g,
+                    "&quot;"
+                )}">${bahanText}</div></td>
+                <td><div class="tabel-truncate" title="${tipsText.replace(
+                    /"/g,
+                    "&quot;"
+                )}">${tipsText}</div></td>
+                <td>${
+                    r.gambar
+                        ? `<img src="/storage/${r.gambar}" alt="Gambar" width="60" style="border-radius: 4px;">`
+                        : "Tidak ada"
+                }</td>
+                <td>
+                    <div class="icon-group">
+                        <iconify-icon icon="uil:edit" width="24" style="color: #E9B310; cursor: pointer;" onclick='openModal("edit", ${
+                            r.id
+                        }, ${escapedData})'></iconify-icon>
+                        <iconify-icon icon="heroicons:trash-16-solid" width="24" style="color: #E43A15; cursor: pointer;" onclick="openDeleteModal(${
+                            r.id
+                        }, '${escapedNama}')"></iconify-icon>
+                    </div>
+                </td>
+            </tr>
+        `;
+        })
+        .join("");
+}
+
+function renderPagination(data) {
+    const container = document.getElementById("pagination");
+    if (!container) return;
+
+    const totalPages = data.last_page || 1;
+    const currentPageNum = data.current_page || 1;
+
+    let html = `<button class="page-button" ${
+        currentPageNum <= 1 ? "disabled" : ""
+    } onclick="loadResep(${currentPageNum - 1})">&lt;</button>`;
+
+    const startPage = Math.max(1, currentPageNum - 2);
+    const endPage = Math.min(totalPages, startPage + 4);
+
+    for (let i = startPage; i <= endPage; i++) {
+        html += `<button class="page-button ${
+            i === currentPageNum ? "active" : ""
+        }" onclick="loadResep(${i})">${i}</button>`;
+    }
+
+    html += `<button class="page-button" ${
+        currentPageNum >= totalPages ? "disabled" : ""
+    } onclick="loadResep(${currentPageNum + 1})">&gt;</button>`;
+
+    container.innerHTML = html;
+}
+
+// Search functions
+function toggleSearch() {
+    const wrapper = document.querySelector(".search-wrapper");
+    if (!wrapper) return;
+
+    wrapper.classList.toggle("active");
+    const input = document.getElementById("searchInput");
+    if (wrapper.classList.contains("active")) {
+        setTimeout(() => input?.focus(), 100);
+    } else {
+        if (input) input.value = "";
+        currentSearchQuery = "";
+        loadResep(1);
+    }
+}
+
+function handleSearch(input) {
+    clearTimeout(window.searchTimeout);
+    window.searchTimeout = setTimeout(() => {
+        currentSearchQuery = input.value.trim();
+        currentPage = 1;
+        loadResep(1);
+    }, 400);
+}
+
+// Initialize
 document.addEventListener("DOMContentLoaded", function () {
-    // Modal close events
-    document
-        .getElementById("cancelDeleteBtn")
-        .addEventListener("click", closeDeleteModal);
-    document
-        .getElementById("confirmDeleteBtn")
-        .addEventListener("click", confirmDelete);
-
-    // Close modal when clicking overlay
-    document
-        .getElementById("modalOverlay")
-        .addEventListener("click", function (e) {
-            if (e.target === this) {
-                closeModal();
+    // Image preview handler
+    const gambarInput = document.getElementById("gambarInput");
+    if (gambarInput) {
+        gambarInput.addEventListener("change", function () {
+            const file = this.files[0];
+            const preview = document.getElementById("imagePreview");
+            if (file) {
+                if (
+                    file.size > 5 * 1024 * 1024 ||
+                    !file.type.startsWith("image/")
+                ) {
+                    alert("File tidak valid!");
+                    this.value = "";
+                    if (preview) preview.style.display = "none";
+                    return;
+                }
+                if (preview) {
+                    preview.src = URL.createObjectURL(file);
+                    preview.style.display = "block";
+                    preview.onload = () => URL.revokeObjectURL(preview.src);
+                }
+            } else if (preview) {
+                preview.src = "";
+                preview.style.display = "none";
             }
         });
+    }
+
+    // Event listeners
+    document
+        .getElementById("cancelDeleteBtn")
+        ?.addEventListener("click", closeDeleteModal);
+    document
+        .getElementById("confirmDeleteBtn")
+        ?.addEventListener("click", confirmDelete);
+
+    document.getElementById("modalOverlay")?.addEventListener("click", (e) => {
+        if (e.target === e.currentTarget) closeModal();
+    });
 
     document
         .getElementById("deleteModalOverlay")
-        .addEventListener("click", function (e) {
-            if (e.target === this) {
-                closeDeleteModal();
-            }
+        ?.addEventListener("click", (e) => {
+            if (e.target === e.currentTarget) closeDeleteModal();
         });
 
-    // Escape key to close modals
-    document.addEventListener("keydown", function (e) {
+    document.addEventListener("keydown", (e) => {
         if (e.key === "Escape") {
             closeModal();
             closeDeleteModal();
         }
     });
+
+    // Search setup
+    const searchBox = document.querySelector(".search-box");
+    if (searchBox) {
+        let searchInput = searchBox.querySelector(".search-input");
+        if (!searchInput) {
+            searchInput = document.createElement("input");
+            Object.assign(searchInput, {
+                type: "text",
+                placeholder: "Cari nama resep...",
+                className: "search-input",
+            });
+            Object.assign(searchInput.style, {
+                padding: "6px 10px",
+                border: "1px solid #ccc",
+                borderRadius: "5px",
+                marginLeft: "10px",
+            });
+            searchBox.appendChild(searchInput);
+        }
+
+        searchInput.addEventListener("input", function () {
+            clearTimeout(this.searchTimeout);
+            this.searchTimeout = setTimeout(() => {
+                currentSearchQuery = this.value.trim();
+                currentPage = 1;
+                loadResep(1);
+            }, 400);
+        });
+    }
+
+    loadResep(1);
+});
+
+// Expose to global scope
+Object.assign(window, {
+    openModal,
+    closeModal,
+    saveData,
+    openDeleteModal,
+    closeDeleteModal,
+    confirmDelete,
+    loadResep,
+    toggleSearch,
+    handleSearch,
 });

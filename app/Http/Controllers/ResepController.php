@@ -12,14 +12,40 @@ class ResepController extends Controller
     //Fungsi untuk menampilkan halaman resep makanan
     public function view()
     {
-        $resep = Resep_Makanan::all();
+        $resep = Resep_Makanan::paginate(4);
         return view('resep', compact('resep'));
     }
     
     // Fungsi untuk menampilkan semua resep makanan dalam format JSON
-    public function index()
+    public function index(Request $request)
     {
-        return response()->json(Resep_Makanan::all());
+        $perPage = $request->get('per_page', 4);
+        $query = Resep_Makanan::query();
+
+        if ($request->has('search')) {
+            $search = $request->get('search');
+            $query->where('nama', 'like', "%{$search}%");
+        }
+
+        $resep = $query->paginate($perPage);
+
+        return response()->json([
+            'data' => $resep->items(),
+            'current_page' => $resep->currentPage(),
+            'last_page' => $resep->lastPage(),
+            'per_page' => $resep->perPage(),
+            'total' => $resep->total(),
+            'from' => $resep->firstItem(),
+            'to' => $resep->lastItem(),
+            'prev_page_url' => $resep->previousPageUrl(),
+            'next_page_url' => $resep->nextPageUrl(),
+        ]);
+    }
+
+    public function getAll()
+    {
+        $reseps = Resep_Makanan::all();
+        return response()->json($reseps);
     }
 
     // Fungsi untuk menyimpan resep makanan baru

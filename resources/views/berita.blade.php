@@ -87,17 +87,19 @@
                                 <iconify-icon icon="ix:user-profile-filled" width="50" height="50"></iconify-icon>
                             </div>
                         </div>
-                        <div class="topbar2">
-                            <button class="tambah" onclick="openModal('add')">
-                                <iconify-icon icon="stash:plus-solid" width="24" height="24" style="color: #fff;">
-                                </iconify-icon>
-                                <span class="btn-text">Tambah Data</span>
-                            </button>
-                            <div class="search-box">
-                                <iconify-icon icon="material-symbols:search-rounded" width="24" height="24">
-                                </iconify-icon>
-                            </div>
+                    <div class="topbar2">
+                        <button class="tambah" onclick="openModal('add')">
+                            <iconify-icon icon="stash:plus-solid" width="24" height="24" style="color: #fff;">
+                            </iconify-icon>
+                            <span class="btn-text">Tambah Data</span>
+                        </button>
+                        <div class="search-wrapper">
+                            <iconify-icon icon="material-symbols:search-rounded" width="24" height="24"
+                                class="search-icon" onclick="toggleSearch()"></iconify-icon>
+                            <input type="text" id="searchInput" placeholder="Cari nama resep..." class="search-input"
+                                oninput="handleSearch(this)" />
                         </div>
+                    </div>
                         <div class="card4">
                             <table class="striped-table">
                                 <thead>
@@ -114,7 +116,7 @@
                                         <td>Aksi</td>
                                     </tr>
                                 </thead>
-                                <tbody id="tableBody">
+                                <tbody id="table-body">
                                     @foreach ($berita as $b)
                                     <tr>
                                         <td>{{ $b->id }}</td>
@@ -171,6 +173,7 @@
                                 </tbody>
                             </table>
                         </div>
+                        <div id="pagination" class="pagination"></div>
                     </div>
                 </div>
             </div>
@@ -227,7 +230,8 @@
 
                     <div class="form-group">
                         <label class="form-label" for="linkInput">Link</label>
-                        <input class="form-input" type="url" id="linkInput" name="link" placeholder="Masukkan link berita" />
+                        <input class="form-input" type="url" id="linkInput" name="link"
+                            placeholder="Masukkan link berita" />
                     </div>
 
                     <div class="form-group">
@@ -247,23 +251,26 @@
         </div>
 
         <!-- Modal Delete Popup -->
-        <div id="deleteModalOverlay">
-            <div>
+        <div id="deleteModalOverlay" style="display: none;">
+            <div class="modal-box">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round"
                         d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
-                <p>Hapus Berita</p>
-                <p>Apakah kamu yakin ingin menghapus berita ini? <span id="deleteTitle"></span>?</p>
+                <p>Apakah kamu yakin ingin menghapus berita ini?</p>
+                <p id="deleteTitle" class="truncate-2-line"></p>
+
+                <!-- Tambahkan container khusus -->
+                <div class="truncate-wrapper">
+                    <span id="deleteTitle" class="truncate-text"></span>
+                </div>
+
                 <div class="button-container">
                     <button id="confirmDeleteBtn">Ya, hapus berita</button>
                     <button id="cancelDeleteBtn">Tidak</button>
                 </div>
             </div>
         </div>
-
-
-
         <script src="{{ asset('js/berita.js') }}"></script>
     </body>
 

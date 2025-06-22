@@ -20,41 +20,43 @@ class AdminAuthController extends Controller
         return view('auth.admin-login');
     }
 
-    //Login Admin
+    // Login Admin
     public function login(AdminLoginRequest $request)
-{
-    $credentials = $request->only('username', 'password');
-    $isApi = $request->expectsJson() || $request->isJson() || $request->wantsJson();
+    {
+        $credentials = $request->only('username', 'password');
+        $isApi = $request->expectsJson() || $request->isJson() || $request->wantsJson();
 
-    if ($isApi) {
-        $admin = Admin::where('username', $credentials['username'])->first();
+        // Username case-sensitive
+        $admin = Admin::whereRaw('BINARY username = ?', [$credentials['username']])->first();
 
         if (!$admin || !Hash::check($credentials['password'], $admin->password)) {
-            return response()->json([
-                'message' => 'Username atau password salah.',
-            ], 401);
+            // Response jika gagal login
+            $error = ['username' => 'Username atau password salah.'];
+
+            if ($isApi) {
+                return response()->json(['message' => $error['username']], 401);
+            }
+
+            return back()->withErrors($error);
         }
 
-        $token = $admin->createToken('admin-token')->plainTextToken;
+        // Login berhasil
+        if ($isApi) {
+            $token = $admin->createToken('admin-token')->plainTextToken;
 
-        return response()->json([
-            'message' => 'Login berhasil',
-            'token' => $token,
-            'admin' => $admin,
-        ]);
-    } else {
-        if (Auth::guard('admin')->attempt($credentials)) {
+            return response()->json([
+                'message' => 'Login berhasil',
+                'token' => $token,
+                'admin' => $admin,
+            ]);
+        } else {
+            Auth::guard('admin')->login($admin);
             $request->session()->regenerate();
             return redirect()->route('dashboard');
         }
-
-        return back()->withErrors([
-            'username' => 'Username atau password salah.',
-        ]);
     }
-}
 
-    //Logout Admin
+    // Logout Admin
     public function logout(Request $request)
     {
         if ($request->expectsJson()) {
