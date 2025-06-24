@@ -48,6 +48,13 @@ class ResepController extends Controller
         return response()->json($reseps);
     }
 
+    // Fungsi untuk mengambil 3 resep makanan terbaru untuk dashboard
+    public function getTop3()
+    {
+        $reseps = Resep_Makanan::latest()->take(3)->get();
+
+        return response()->json($reseps);
+    }
     // Fungsi untuk menyimpan resep makanan baru
     public function store(ResepRequest $request)
     {

@@ -12,7 +12,7 @@ class BeritaController extends Controller
     // Tampilkan halaman view dengan pagination
     public function view()
     {
-        $berita = Berita::paginate(4); // Default 4 per halaman
+        $berita = Berita::paginate(4);
         return view('berita', compact('berita'));
     }
 

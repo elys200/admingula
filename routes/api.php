@@ -27,7 +27,7 @@ Route::prefix('v1')->group(function () {
     // Admin Authentication (Public)
     Route::prefix('admin')->group(function () {
         Route::post('/login', [AdminAuthController::class, 'login']);
-        // Add more admin routes here and protect with middleware
+        Route::post('/register', [AdminAuthController::class, 'register']);
     });
 
     // Protected Routes (Authenticated Users Only)
@@ -63,6 +63,8 @@ Route::prefix('v1')->group(function () {
 
     // Berita untuk mobile
     Route::get('/berita-all', [BeritaController::class, 'getAll']);
+    //3 Resep Terbaru
+    Route::get('/resep-terbaru', [ResepController::class, 'getTop3']);
 
     // Resep CRUD
     Route::prefix('resep')->group(function () {

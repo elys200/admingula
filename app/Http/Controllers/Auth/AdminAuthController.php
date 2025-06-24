@@ -20,6 +20,29 @@ class AdminAuthController extends Controller
         return view('auth.admin-login');
     }
 
+    public function register(Request $request)
+    {
+        $validated = $request->validate([
+            'username' => 'required|unique:admin,username',
+            'nama'     => 'required|string',
+            'password' => 'required|string|min:6',
+        ]);
+
+        $admin = Admin::create([
+            'username' => $validated['username'],
+            'nama'     => $validated['nama'],
+            'password' => Hash::make($validated['password']),
+        ]);
+
+        $token = $admin->createToken('admin-token')->plainTextToken;
+
+        return response()->json([
+            'message' => 'Admin berhasil didaftarkan',
+            'admin' => $admin,
+            'token' => $token,
+        ], 201);
+    }
+
     // Login Admin
     public function login(AdminLoginRequest $request)
     {
