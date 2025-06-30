@@ -78,7 +78,7 @@ class UserProfileController extends Controller
     {
         $user = $request->user();
 
-        $user->password = Hash::make($request->new_password);
+        $user->password = $request->new_password;
         $user->save();
 
         return response()->json([

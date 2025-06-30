@@ -1,4 +1,3 @@
-// Global variables
 let currentMode = "add",
     currentEditId = null,
     deleteTargetId = null;

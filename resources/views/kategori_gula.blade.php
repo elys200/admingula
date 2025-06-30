@@ -142,7 +142,7 @@
         </div>
     </div>
 
-    <!-- Modal Pop-up -->
+    <!-- Modal Add Pop-up -->
     <div class="modal-overlay" id="modalOverlay">
         <div class="modal-content">
             <div class="modal-header">

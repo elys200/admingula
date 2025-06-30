@@ -1,6 +1,6 @@
-let currentMode = "add";
-let currentEditId = null;
-let deleteTargetId = null;
+let currentMode = "add",
+    currentEditId = null,
+    deleteTargetId = null;
 
 // Buka modal
 function openModal(mode, id = null) {
@@ -79,7 +79,7 @@ function saveData() {
         return;
     }
 
-    // Validasi gula_max (jika diisi)
+    // Validasi gula_max
     let maxVal = null;
     if (gulaMax) {
         maxVal = parseFloat(gulaMax);
@@ -104,7 +104,7 @@ function saveData() {
     const formData = new FormData();
     formData.append("nama", nama);
     formData.append("gula_min", gulaMin);
-    formData.append("gula_max", gulaMax); // boleh kosong
+    formData.append("gula_max", gulaMax);
     formData.append("deskripsi", deskripsi);
 
     let url = "/api/v1/kategori_gula";
@@ -135,6 +135,38 @@ function saveData() {
             console.error("Fetch error:", err);
             alert("Gagal menyimpan data. Cek konsol.");
         });
+}
+
+// Buka modal konfirmasi hapus
+function openDeleteModal(id, nama) {
+    deleteTargetId = id;
+    document.getElementById("deleteTitle").textContent = `"${nama}"`;
+    document.getElementById("deleteModalOverlay").style.display = "flex";
+}
+
+// Tutup modal hapus
+function closeDeleteModal() {
+    deleteTargetId = null;
+    document.getElementById("deleteModalOverlay").style.display = "none";
+}
+
+// Konfirmasi hapus data
+async function confirmDelete() {
+    if (!deleteTargetId) return;
+    try {
+        const res = await fetch(`/api/v1/kategori_gula/${deleteTargetId}`, {
+            method: "DELETE",
+        });
+
+        if (!res.ok) throw new Error("Gagal menghapus data.");
+        const data = await res.json();
+        alert(data.message || "Data berhasil dihapus!");
+        closeDeleteModal();
+        location.reload(); // Atau panggil loadKategoriGula() jika ada fungsi load dinamis
+    } catch (err) {
+        console.error(err);
+        alert("Gagal menghapus data.");
+    }
 }
 
 // Event listener tombol konfirmasi dan batal hapus

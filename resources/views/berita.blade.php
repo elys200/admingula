@@ -96,7 +96,7 @@
                         <div class="search-wrapper">
                             <iconify-icon icon="material-symbols:search-rounded" width="24" height="24"
                                 class="search-icon" onclick="toggleSearch()"></iconify-icon>
-                            <input type="text" id="searchInput" placeholder="Cari nama resep..." class="search-input"
+                            <input type="text" id="searchInput" placeholder="Cari judul berita..." class="search-input"
                                 oninput="handleSearch(this)" />
                         </div>
                     </div>
@@ -259,12 +259,9 @@
                 </svg>
                 <p>Apakah kamu yakin ingin menghapus berita ini?</p>
                 <p id="deleteTitle" class="truncate-2-line"></p>
-
-                <!-- Tambahkan container khusus -->
                 <div class="truncate-wrapper">
                     <span id="deleteTitle" class="truncate-text"></span>
                 </div>
-
                 <div class="button-container">
                     <button id="confirmDeleteBtn">Ya, hapus berita</button>
                     <button id="cancelDeleteBtn">Tidak</button>

@@ -51,7 +51,7 @@ class AuthenticationController extends Controller
 
         $user = User::where('username', $validated['username'])->first();
 
-        if (!$user || !Hash::check($validated['password'], $user->password)) {
+        if (!$user || !Hash::check($validated['password'], (string) $user->password)) {
             return response()->json(['message' => 'Login gagal'], 401);
         }
 

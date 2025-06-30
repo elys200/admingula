@@ -65,6 +65,8 @@ Route::prefix('v1')->group(function () {
     Route::get('/berita-all', [BeritaController::class, 'getAll']);
     //3 Resep Terbaru
     Route::get('/resep-terbaru', [ResepController::class, 'getTop3']);
+    // Resep untuk mobile
+    Route::get('/resep-all', [ResepController::class, 'getAll']);
 
     // Resep CRUD
     Route::prefix('resep')->group(function () {
@@ -74,9 +76,6 @@ Route::prefix('v1')->group(function () {
         Route::put('/{id}', [ResepController::class, 'update']);
         Route::delete('/{id}', [ResepController::class, 'destroy']);
     });
-
-    // Resep untuk mobile
-    Route::get('/resep-all', [ResepController::class, 'getAll']);
 
 
     // Kategori Gula CRUD

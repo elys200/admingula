@@ -1,11 +1,9 @@
-// berita.js (versi refactor sesuai pendekatan ResepController)
-
-let currentMode = "add";
-let currentEditId = null;
-let deleteTargetId = null;
-let currentPage = 1;
-let currentSearchQuery = "";
-let isLoading = false;
+let currentMode = "add",
+    currentEditId = null,
+    deleteTargetId = null;
+let currentPage = 1,
+    currentSearchQuery = "",
+    isLoading = false;
 
 // Buka Modal Tambah / Edit
 async function openModal(mode, id = null) {
@@ -295,7 +293,6 @@ function toggleSearch() {
 }
 
 // Event Listeners
-
 document
     .getElementById("cancelDeleteBtn")
     .addEventListener("click", closeDeleteModal);
