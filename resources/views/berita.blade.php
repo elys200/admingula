@@ -25,14 +25,6 @@
                         <span class="title">Sense.</span>
                     </li>
                     <li>
-                        <a href="">
-                            <span class="icon">
-                                <iconify-icon icon="ix:user-profile-filled" width="40" height="40"></iconify-icon>
-                            </span>
-                            <span class="title">Profile</span>
-                        </a>
-                    </li>
-                    <li>
                         <a href="{{ route('dashboard') }}">
                             <span class="icon">
                                 <iconify-icon icon="solar:home-add-bold" width="40" height="40"></iconify-icon>

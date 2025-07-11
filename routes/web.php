@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminJurnalController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\JurnalController;
@@ -37,4 +38,5 @@ Route::get('/kategori_gula', [KategorigulaController::class, 'view'])->middlewar
 Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
 
 //Jurnal
-Route::get('/jurnal', [JurnalController::class, 'index'])->name('jurnal');
+Route::get('/jurnal', [AdminJurnalController::class, 'index'])->name('jurnal');
+Route::get('/jurnal/data', [AdminJurnalController::class, 'data'])->name('jurnal.data');

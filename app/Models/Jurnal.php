@@ -8,9 +8,18 @@ class Jurnal extends Model
 {
     protected $table = 'jurnal';
     protected $fillable = [
-        'judul', 'gambar', 'deskripsi', 'sumber', 'penulis', 'tanggalterbit'
+        'user_id', 'kategori_gula_id', 'waktu_makan', 'total_gula', 'date',
+        'jam', 'total_kalori', 'total_karbo', 'total_lemak'
     ];
-    protected $dates = [
-        'tanggalterbit'
-    ];
+
+    public function kategori()
+    {
+        return $this->belongsTo(Kategori_Gula::class, 'kategori_gula_id');
+    }
+
+    public function user()
+{
+    return $this->belongsTo(User::class);
+}
+
 }

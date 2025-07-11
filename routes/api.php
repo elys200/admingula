@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminJurnalController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\user\AuthenticationController;
@@ -10,6 +11,7 @@ use App\Http\Controllers\BeritaController;
 use App\Http\Controllers\ResepController;
 use App\Http\Controllers\KategorigulaController;
 use App\Http\Controllers\JurnalController;
+
 
 Route::prefix('v1')->group(function () {
     
@@ -29,6 +31,8 @@ Route::prefix('v1')->group(function () {
         Route::post('/login', [AdminAuthController::class, 'login']);
         Route::post('/register', [AdminAuthController::class, 'register']);
     });
+
+    Route::get('/jurnal', [AdminJurnalController::class, 'adminIndex']);
 
     // Protected Routes (Authenticated Users Only)
     Route::middleware('auth:sanctum')->group(function () {
@@ -77,7 +81,6 @@ Route::prefix('v1')->group(function () {
         Route::delete('/{id}', [ResepController::class, 'destroy']);
     });
 
-
     // Kategori Gula CRUD
     Route::prefix('kategori_gula')->group(function () {
         Route::get('/', [KategorigulaController::class, 'index']);
@@ -85,5 +88,12 @@ Route::prefix('v1')->group(function () {
         Route::post('/', [KategorigulaController::class, 'store']);
         Route::put('/{id}', [KategorigulaController::class, 'update']);
         Route::delete('/{id}', [KategorigulaController::class, 'destroy']);
+    });
+    
+    // Jurnal
+    Route::prefix('jurnal')->group(function () {
+        Route::get('/', [JurnalController::class, 'index']);
+        Route::post('/', [JurnalController::class, 'store']);
+        Route::delete('/{id}', [JurnalController::class, 'destroy']);
     });
 });
