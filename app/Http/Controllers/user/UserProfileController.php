@@ -24,7 +24,7 @@ class UserProfileController extends Controller
         return response()->json($user);
     }
 
-    // Mengupdate profil user (termasuk foto jika ada)
+    // Mengupdate profil user (data + optional foto)
     public function update(UserUpdateProfileRequest $request)
     {
         $user = $request->user();
@@ -69,6 +69,23 @@ class UserProfileController extends Controller
 
         return response()->json([
             'message' => 'Foto profil berhasil diperbarui.',
+            'user' => $user,
+        ]);
+    }
+
+    // Hapus foto profil
+    public function deletePhoto(Request $request)
+    {
+        $user = $request->user();
+
+        if ($user->foto && Storage::disk('public')->exists($user->foto)) {
+            Storage::disk('public')->delete($user->foto);
+            $user->foto = null;
+            $user->save();
+        }
+
+        return response()->json([
+            'message' => 'Foto profil berhasil dihapus.',
             'user' => $user,
         ]);
     }

@@ -45,6 +45,7 @@ Route::prefix('v1')->group(function () {
             Route::get('/', [UserProfileController::class, 'show']);
             Route::put('/', [UserProfileController::class, 'update']);
             Route::post('/foto', [UserProfileController::class, 'updatePhoto']);
+            Route::delete('/foto', [UserProfileController::class, 'deletePhoto']);
             Route::post('/change-password', [UserProfileController::class, 'changePassword']);
         });
 
