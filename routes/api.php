@@ -1,7 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdminJurnalController;
-use Illuminate\Http\Request;
+use App\Http\Controllers\user\UserJurnalController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\user\AuthenticationController;
 use App\Http\Controllers\user\UserProfileController;
@@ -10,37 +10,29 @@ use App\Http\Controllers\Auth\AdminAuthController;
 use App\Http\Controllers\BeritaController;
 use App\Http\Controllers\ResepController;
 use App\Http\Controllers\KategorigulaController;
-use App\Http\Controllers\JurnalController;
-
 
 Route::prefix('v1')->group(function () {
-    
-    // Public Routes
-    Route::get('/test', function () {
-        return response([
-            'message' => 'API is working'
-        ], 200);
-    });
 
-    // User Authentication (Public)
+    Route::get('/test', fn () => response(['message' => 'API is working'], 200));
+
+    // User Authentication
     Route::post('/register', [AuthenticationController::class, 'register']);
     Route::post('/login', [AuthenticationController::class, 'login']);
 
-    // Admin Authentication (Public)
+    // Admin Authentication
     Route::prefix('admin')->group(function () {
         Route::post('/login', [AdminAuthController::class, 'login']);
         Route::post('/register', [AdminAuthController::class, 'register']);
     });
 
-    Route::get('/jurnal', [AdminJurnalController::class, 'adminIndex']);
+    // Admin jurnal
+    Route::get('/jurnal', [AdminJurnalController::class, 'index']);
 
-    // Protected Routes (Authenticated Users Only)
+    // Protected User Routes
     Route::middleware('auth:sanctum')->group(function () {
-        
-        // User Logout
+
         Route::post('/logout', [AuthenticationController::class, 'logout']);
 
-        // User Profile
         Route::prefix('user/profile')->group(function () {
             Route::get('/', [UserProfileController::class, 'show']);
             Route::put('/', [UserProfileController::class, 'update']);
@@ -49,10 +41,15 @@ Route::prefix('v1')->group(function () {
             Route::post('/change-password', [UserProfileController::class, 'changePassword']);
         });
 
-        // Resep Favorit
         Route::prefix('resep-favorit')->group(function () {
             Route::get('/', [ResepFavoritController::class, 'show']);
             Route::post('/toggle', [ResepFavoritController::class, 'toggle']);
+        });
+
+        // 📄 User: hanya miliknya sendiri
+        Route::prefix('jurnal/user')->group(function () {
+            Route::get('/', [UserJurnalController::class, 'index']);
+            Route::post('/', [UserJurnalController::class, 'store']);
         });
     });
 
@@ -66,11 +63,8 @@ Route::prefix('v1')->group(function () {
         Route::get('/kategori/{kategori}', [BeritaController::class, 'kategori']);
     });
 
-    // Berita untuk mobile
     Route::get('/berita-all', [BeritaController::class, 'getAll']);
-    //3 Resep Terbaru
     Route::get('/resep-terbaru', [ResepController::class, 'getTop3']);
-    // Resep untuk mobile
     Route::get('/resep-all', [ResepController::class, 'getAll']);
 
     // Resep CRUD
@@ -89,12 +83,5 @@ Route::prefix('v1')->group(function () {
         Route::post('/', [KategorigulaController::class, 'store']);
         Route::put('/{id}', [KategorigulaController::class, 'update']);
         Route::delete('/{id}', [KategorigulaController::class, 'destroy']);
-    });
-    
-    // Jurnal
-    Route::prefix('jurnal')->group(function () {
-        Route::get('/', [JurnalController::class, 'index']);
-        Route::post('/', [JurnalController::class, 'store']);
-        Route::delete('/{id}', [JurnalController::class, 'destroy']);
     });
 });

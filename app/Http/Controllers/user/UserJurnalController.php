@@ -1,25 +1,25 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\user;
 
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
 use App\Models\Jurnal;
 use App\Models\Kategori_Gula;
 
-class JurnalController extends Controller
+class UserJurnalController extends Controller
 {
-    /**
-     * Ambil semua jurnal untuk user tertentu, urut terbaru, tanpa paginate.
-     */
+    // Ambil jurnal milik user yg login
     public function index(Request $request)
     {
+        $userId = auth()->id();
+
         $validated = $request->validate([
-            'user_id'   => 'required|exists:users,id',
-            'per_page'  => 'nullable|integer|min:1|max:100', // opsional, kalau mau batasi hasil
+            'per_page' => 'nullable|integer|min:1|max:100',
         ]);
 
         $query = Jurnal::with('kategori')
-            ->where('user_id', $validated['user_id'])
+            ->where('user_id', $userId)
             ->orderByDesc('date')
             ->orderByDesc('jam');
 
@@ -29,22 +29,23 @@ class JurnalController extends Controller
 
         $data = $query->get();
 
+        // Mapping ke response yg lebih rapi
         $mapped = $data->map(function ($item) {
             return [
-                'id'               => $item->id,
-                'date'             => $item->date,
-                'waktu_makan'      => $item->waktu_makan,
-                'jam'              => $item->jam,
-                'total_gula'       => $item->total_gula,
-                'total_kalori'     => $item->total_kalori,
-                'total_karbo'      => $item->total_karbo,
-                'total_lemak'      => $item->total_lemak,
-                'kategori'         => [
+                'id'           => $item->id,
+                'date'         => $item->date,
+                'waktu_makan'  => $item->waktu_makan,
+                'jam'          => $item->jam,
+                'total_gula'   => $item->total_gula,
+                'total_kalori' => $item->total_kalori,
+                'total_karbo'  => $item->total_karbo,
+                'total_lemak'  => $item->total_lemak,
+                'kategori'     => [
                     'id'   => $item->kategori?->id,
                     'nama' => $item->kategori?->nama,
                 ],
-                'status'           => ucfirst($item->kategori?->nama ?? '-'),
-                'status_color'     => $this->getStatusColor($item->kategori?->nama),
+                'status'       => ucfirst($item->kategori?->nama ?? '-'),
+                'status_color' => $this->getStatusColor($item->kategori?->nama),
             ];
         });
 
@@ -54,26 +55,12 @@ class JurnalController extends Controller
         ]);
     }
 
-    /**
-     * Ambil warna status berdasarkan kategori gula.
-     */
-    private function getStatusColor($kategori)
-    {
-        return match (strtolower($kategori ?? '')) {
-            'low'    => '#4CAF50',
-            'normal' => '#FFC107',
-            'high'   => '#F44336',
-            default  => '#000000',
-        };
-    }
-
-    /**
-     * Simpan jurnal baru.
-     */
+    // Simpan jurnal baru untuk user
     public function store(Request $request)
     {
+        $userId = auth()->id();
+
         $validated = $request->validate([
-            'user_id'       => 'required|exists:users,id',
             'waktu_makan'   => 'required|string',
             'total_gula'    => 'required|numeric',
             'date'          => 'required|date',
@@ -93,6 +80,7 @@ class JurnalController extends Controller
             ], 422);
         }
 
+        $validated['user_id'] = $userId;
         $validated['kategori_gula_id'] = $kategori->id;
 
         $jurnal = Jurnal::create($validated);
@@ -100,16 +88,14 @@ class JurnalController extends Controller
         return response()->json($jurnal, 201);
     }
 
-    /**
-     * Hapus jurnal.
-     */
-    public function destroy($id)
+    // Warna status berdasarkan kategori
+    private function getStatusColor($kategori)
     {
-        $jurnal = Jurnal::findOrFail($id);
-        $jurnal->delete();
-
-        return response()->json([
-            'message' => 'Jurnal berhasil dihapus.'
-        ]);
+        return match (strtolower($kategori ?? '')) {
+            'low'    => '#4CAF50',
+            'normal' => '#FFC107',
+            'high'   => '#F44336',
+            default  => '#000000',
+        };
     }
 }

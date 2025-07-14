@@ -7,16 +7,19 @@ use Illuminate\Http\Request;
 
 class AdminJurnalController extends Controller
 {
+    // Tampilkan view jurnal admin
     public function index()
     {
         $jurnal = Jurnal::with(['user', 'kategori'])->orderByDesc('date')->paginate(10);
         return view('jurnal', compact('jurnal'));
     }
 
+    // Ambil data jurnal untuk fungsi search
     public function data(Request $request)
     {
         $query = Jurnal::with(['user:id,username', 'kategori:id,nama'])->orderByDesc('date');
 
+        // filter pencarian username
         if ($request->filled('search')) {
             $search = trim($request->input('search'));
             $query->whereHas('user', fn ($q) => $q->where('username', 'like', "%{$search}%"));
@@ -26,5 +29,4 @@ class AdminJurnalController extends Controller
 
         return response()->json($data);
     }
-
 }
