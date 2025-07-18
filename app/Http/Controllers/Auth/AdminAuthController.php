@@ -11,15 +11,18 @@ use App\Http\Requests\AdminLoginRequest;
 
 class AdminAuthController extends Controller
 {
+    // Tampilkan halaman login web admin
     public function showLogin()
     {
         if (Auth::guard('admin')->check()) {
             return redirect()->route('dashboard');
         }
 
-        return view('auth.admin-login');
+        return view('welcome');
+
     }
 
+    // API: Register admin
     public function register(Request $request)
     {
         $validated = $request->validate([
@@ -38,22 +41,21 @@ class AdminAuthController extends Controller
 
         return response()->json([
             'message' => 'Admin berhasil didaftarkan',
-            'admin' => $admin,
-            'token' => $token,
+            'admin'   => $admin,
+            'token'   => $token,
         ], 201);
     }
 
-    // Login Admin
+    // Login Web dan API
     public function login(AdminLoginRequest $request)
     {
         $credentials = $request->only('username', 'password');
         $isApi = $request->expectsJson() || $request->isJson() || $request->wantsJson();
 
-        // Username case-sensitive
+        // Case-sensitive username check
         $admin = Admin::whereRaw('BINARY username = ?', [$credentials['username']])->first();
 
         if (!$admin || !Hash::check($credentials['password'], $admin->password)) {
-            // Response jika gagal login
             $error = ['username' => 'Username atau password salah.'];
 
             if ($isApi) {
@@ -63,36 +65,38 @@ class AdminAuthController extends Controller
             return back()->withErrors($error);
         }
 
-        // Login berhasil
         if ($isApi) {
             $token = $admin->createToken('admin-token')->plainTextToken;
 
             return response()->json([
                 'message' => 'Login berhasil',
-                'token' => $token,
-                'admin' => $admin,
+                'token'   => $token,
+                'admin'   => $admin,
             ]);
-        } else {
-            Auth::guard('admin')->login($admin);
-            $request->session()->regenerate();
-            return redirect()->route('dashboard');
         }
+
+        // Web login
+        Auth::guard('admin')->login($admin);
+        $request->session()->regenerate();
+
+        return redirect()->route('dashboard');
     }
 
-    // Logout Admin
+    // Logout Web & API
     public function logout(Request $request)
     {
         if ($request->expectsJson()) {
-            // Logout dari API
+            // API logout
             $request->user()->currentAccessToken()->delete();
-            return response()->json(['message' => 'Logout berhasil']);
-        } else {
-            // Logout dari Web
-            Auth::guard('admin')->logout();
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
 
-            return redirect()->route('admin.login');
+            return response()->json(['message' => 'Logout berhasil']);
         }
+
+        // Web logout
+        Auth::guard('admin')->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()->route('login');
     }
 }

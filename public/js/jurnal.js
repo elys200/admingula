@@ -12,70 +12,96 @@ async function loadJurnal(page = 1) {
     currentPage = page;
 
     const tableBody = document.querySelector("#table-body");
-    tableBody.innerHTML = `<tr><td colspan="5" style="text-align:center">Loading...</td></tr>`;
+    tableBody.innerHTML = `
+        <tr>
+            <td colspan="5" style="text-align:center">Loading...</td>
+        </tr>`;
 
     const searchParam = currentSearchQuery
         ? `&search=${encodeURIComponent(currentSearchQuery)}`
         : "";
 
     try {
-        const res = await fetch(
-            `/admin/jurnal/data?page=${page}${searchParam}`
-        );
-        if (!res.ok) throw new Error("Failed to load data");
-        const data = await res.json();
+        const res = await fetch(`/api/v1/jurnal?page=${page}${searchParam}`);
+        if (!res.ok) throw new Error(`Failed to load data: ${res.status}`);
 
-        updateTable(data.data);
-        renderPagination(data);
+        const json = await res.json();
+
+        const from = json?.pagination?.from ?? 0;
+        updateTable(json.data, from);
+        renderPagination(json.pagination);
     } catch (err) {
-        console.error(err);
-        tableBody.innerHTML = `<tr><td colspan="5" style="text-align:center">Error loading data</td></tr>`;
+        console.error("Error:", err);
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="5" style="text-align:center; color: red;">Error loading data</td>
+            </tr>`;
     } finally {
         isLoading = false;
     }
 }
 
-function updateTable(data) {
+function updateTable(data, from) {
     const tableBody = document.querySelector("#table-body");
-    if (!data.length) {
-        tableBody.innerHTML = `<tr><td colspan="5" style="text-align:center">Tidak ada data</td></tr>`;
+    if (!data || data.length === 0) {
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="5" style="text-align:center">Tidak ada data</td>
+            </tr>`;
         return;
     }
 
     tableBody.innerHTML = data
         .map(
-            (item) => `
+            (item, idx) => `
         <tr>
-            <td>${item.id}</td>
-            <td>${escapeHtml(item.user?.username || "-")}</td>
-            <td>${item.total_gula} gram</td>
+            <td>${from + idx}</td>
+            <td>
+                <div class="tabel-truncate" title="${escapeHtml(
+                    item.user?.username || "-"
+                )}">
+                    ${escapeHtml(item.user?.username || "-")}
+                </div>
+            </td>
+            <td>${escapeHtml(item.total_gula?.toString() || "0")} gram</td>
             <td>${formatDate(item.date)}</td>
-            <td>${escapeHtml(item.kategori?.nama || "-")}</td>
+            <td>
+                <div class="tabel-truncate" title="${escapeHtml(
+                    item.kategori?.nama || "-"
+                )}">
+                    ${escapeHtml(item.kategori?.nama || "-")}
+                </div>
+            </td>
         </tr>
     `
         )
         .join("");
 }
 
-function renderPagination(data) {
+function renderPagination(pagination) {
     const container = document.getElementById("pagination");
-    const { current_page, last_page } = data;
-    let html = `<button ${
-        current_page <= 1 ? "disabled" : ""
-    } onclick="loadJurnal(${current_page - 1})">&lt;</button>`;
+    if (!container) return;
 
-    const startPage = Math.max(1, current_page - 2);
-    const endPage = Math.min(last_page, startPage + 4);
+    const totalPages = pagination.last_page || 1;
+    const currentPageNum = pagination.current_page || 1;
+    let html = `<button class="page-button" ${
+        currentPageNum <= 1 ? "disabled" : ""
+    } onclick="loadJurnal(${currentPageNum - 1})">&lt;</button>`;
+
+    const startPage = Math.max(1, currentPageNum - 2);
+    const endPage = Math.min(totalPages, startPage + 4);
 
     for (let i = startPage; i <= endPage; i++) {
-        html += `<button class="${
-            i === current_page ? "active" : ""
-        }" onclick="loadJurnal(${i})">${i}</button>`;
+        html += `<button class="page-button ${
+            i === currentPageNum ? "active" : ""
+        }"
+            onclick="loadJurnal(${i})">${i}</button>`;
     }
 
-    html += `<button ${
-        current_page >= last_page ? "disabled" : ""
-    } onclick="loadJurnal(${current_page + 1})">&gt;</button>`;
+    html += `<button class="page-button" ${
+        currentPageNum >= totalPages ? "disabled" : ""
+    } onclick="loadJurnal(${currentPageNum + 1})">&gt;</button>`;
+
     container.innerHTML = html;
 }
 
@@ -83,18 +109,16 @@ function handleSearch(input) {
     clearTimeout(window.searchTimeout);
     window.searchTimeout = setTimeout(() => {
         currentSearchQuery = input.value.trim();
-        currentPage = 1;
         loadJurnal(1);
-    }, 300);
+    }, 400);
 }
 
 function toggleSearch() {
     const wrapper = document.querySelector(".search-wrapper");
-    const input = document.getElementById("searchInput");
-
     wrapper.classList.toggle("active");
+    const input = document.getElementById("searchInput");
     if (wrapper.classList.contains("active")) {
-        setTimeout(() => input.focus(), 100);
+        input.focus();
     } else {
         input.value = "";
         currentSearchQuery = "";
@@ -104,8 +128,13 @@ function toggleSearch() {
 
 function formatDate(dateString) {
     if (!dateString) return "-";
-    const options = { day: "2-digit", month: "long", year: "numeric" };
-    return new Date(dateString).toLocaleDateString("id-ID", options);
+    const d = new Date(dateString);
+    if (isNaN(d)) return "-";
+    return d.toLocaleDateString("id-ID", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+    });
 }
 
 function escapeHtml(str) {

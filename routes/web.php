@@ -15,15 +15,16 @@ Route::get('/', function () {
 });
 
 //Login
-Route::post('/login', [AdminAuthController::class, 'login'])->name('login');
+Route::get('/login', [AdminAuthController::class, 'showLogin'])->name('login');
+Route::post('/login', [AdminAuthController::class, 'login'])->name('login.submit');
+
 
 //Logout
 Route::post('/logout', [AdminAuthController::class, 'logout'])->name('logout');
 
-//Dashboard
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware('auth:admin')->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])
+    ->middleware('auth:admin')
+    ->name('dashboard');
 
 //Berita
 Route::get('/berita', [BeritaController::class, 'view'])->middleware('auth:admin')->name('berita');
@@ -38,5 +39,4 @@ Route::get('/kategori_gula', [KategorigulaController::class, 'view'])->middlewar
 Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
 
 //Jurnal
-Route::get('/jurnal', [AdminJurnalController::class, 'index'])->name('jurnal');
-Route::get('/jurnal/data', [AdminJurnalController::class, 'data'])->name('jurnal.data');
+Route::get('/jurnal', [AdminJurnalController::class, 'view'])->name('jurnal');

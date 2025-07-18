@@ -11,6 +11,7 @@
     <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400..700&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
     </style>
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
 </head>
@@ -73,13 +74,25 @@
                         <div class="text1">
                             <span class="tittle">Data Jurnal</span>
                         </div>
-                        <div class="text2">
-                            <span class="tittle">Welcome, {{ Auth::user()->name ?? 'Guest' }}!</span>
-                            <iconify-icon icon="ix:user-profile-filled" width="50" height="50"></iconify-icon>
+                        <div class="text2" style="display: flex; align-items: center; gap: 10px;">
+                            <span class="tittle">Welcome, {{ Auth::guard('admin')->user()->nama ?? 'Guest' }}!</span>
+                            <div class="profile-dropdown">
+                                <button id="profileBtn" style="background: none; border: none; cursor: pointer;">
+                                    <iconify-icon icon="ix:user-profile-filled" width="50" height="50"></iconify-icon>
+                                </button>
+                                <div id="dropdownMenu" class="dropdown-content">
+                                    <form id="logoutForm" action="{{ route('logout') }}" method="POST">
+                                        @csrf
+                                        <button type="submit">
+                                            <iconify-icon icon="material-symbols:logout" width="20"></iconify-icon>
+                                            Logout
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    
-                    <div class="topbar2">
+                    <div class="topbar2" style="display: flex; justify-content: flex-end; align-items: center;">
                         <div class="search-wrapper">
                             <iconify-icon icon="material-symbols:search-rounded" width="24" height="24"
                                 class="search-icon" onclick="toggleSearch()"></iconify-icon>
@@ -87,7 +100,6 @@
                                 oninput="handleSearch(this)" />
                         </div>
                     </div>
-                    
                     <div class="card4">
                         <table class="striped-table">
                             <thead>
@@ -100,37 +112,19 @@
                                 </tr>
                             </thead>
                             <tbody id="table-body">
-                                @forelse ($jurnal as $j)
                                 <tr>
-                                    <td>{{ $j->id }}</td>
-                                    <td>
-                                        <div class="tabel-truncate" title="{{ $j->user->username ?? '-' }}">
-                                            {{ $j->user->username ?? '-' }}
-                                        </div>
-                                    </td>
-                                    <td>{{ $j->total_gula }} gram</td>
-                                    <td>{{ $j->date }}</td>
-                                    <td>
-                                        <div class="tabel-truncate" title="{{ $j->kategori->nama ?? '-' }}">
-                                            {{ $j->kategori->nama ?? '-' }}
-                                        </div>
-                                    </td>
+                                    <td colspan="5" style="text-align:center">Memuat data...</td>
                                 </tr>
-                                @empty
-                                <tr>
-                                    <td colspan="5" style="text-align:center;">Tidak ada data</td>
-                                </tr>
-                                @endforelse
                             </tbody>
                         </table>
                     </div>
-                    <div id="pagination" class="pagination">
-                    </div>
+                    <div id="pagination" class="pagination"></div>
                 </div>
             </div>
         </div>
     </div>
-    <script src="{{ asset('js/jurnals.js') }}"></script>
+    <script src="{{ asset('js/jurnal.js') }}"></script>
+    <script src="{{ asset('js/profile_logout.js') }}"></script>
 </body>
 
 </html>

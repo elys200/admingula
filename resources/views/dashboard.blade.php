@@ -73,14 +73,27 @@
                         <div class="text1">
                             <span class="tittle"> Dashboard</span>
                         </div>
-                        <div class="text2">
-                            <span class="tittle"> Welcome, Han!</span>
-                            <iconify-icon icon="ix:user-profile-filled" width="50" height="50"></iconify-icon>
+                        <div class="text2" style="display: flex; align-items: center; gap: 10px;">
+                            <span class="tittle">Welcome, {{ Auth::guard('admin')->user()->nama ?? 'Guest' }}!</span>
+                            <div class="profile-dropdown">
+                                <button id="profileBtn" style="background: none; border: none; cursor: pointer;">
+                                    <iconify-icon icon="ix:user-profile-filled" width="50" height="50"></iconify-icon>
+                                </button>
+                                <div id="dropdownMenu" class="dropdown-content">
+                                    <form id="logoutForm" action="{{ route('logout') }}" method="POST">
+                                        @csrf
+                                        <button type="submit">
+                                            <iconify-icon icon="material-symbols:logout" width="20"></iconify-icon>
+                                            Logout
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="box2">
                         <div class="title1">
-                            <span>Hello, Han</span><br>
+                            <span>Hello, {{ Auth::guard('admin')->user()->nama ?? 'Guest' }}</span><br>
                             <span class="child">Make each day your masterpiece with Sweet Sense</span>
                         </div>
                         <div class="gambar">
@@ -95,35 +108,38 @@
                     <div class="box3">
                         <div class="card3">
                             <a href="{{ route('jurnal') }}">
-                                <span class="title2"> 01 </span><br>
+                                <span class="title2">01</span>
                                 <iconify-icon icon="mdi:journal" width="50" height="50" style="color: #fff">
                                 </iconify-icon>
-                                <span class="title3"> Data Jurnal</span><br>
-                                <span class="title3"> 15 Data </span><br>
+                                <span class="title3">Data Jurnal</span>
+                                <span class="title3">{{ $jurnalCount }} Data</span>
                             </a>
                         </div>
                         <div class="card3">
                             <a href="{{route('berita')}}">
-                                <span class="title2"> 02 </span><br>
-                                <iconify-icon icon="material-symbols:newspaper" width="50" height="50" style="color: #fff" ></iconify-icon>
-                                <span class="title3"> Data Berita </span><br>
-                                <span class="title3"> 15 Data </span><br>
+                                <span class="title2">02</span>
+                                <iconify-icon icon="material-symbols:newspaper" width="50" height="50"
+                                    style="color: #fff"></iconify-icon>
+                                <span class="title3">Data Berita</span>
+                                <span class="title3">{{ $beritaCount }} Data</span>
                             </a>
                         </div>
                         <div class="card3">
                             <a href="{{route('resep_makanan')}}">
-                                <span class="title2"> 03 </span><br>
-                                <iconify-icon icon="uil:book-open" width="50" height="50" style="color: #fff"></iconify-icon>
-                                <span class="title3"> Data Resep Makanan </span><br>
-                                <span class="title3"> 15 Data </span><br>
+                                <span class="title2">03</span>
+                                <iconify-icon icon="uil:book-open" width="50" height="50" style="color: #fff">
+                                </iconify-icon>
+                                <span class="title3">Data Resep Makanan</span>
+                                <span class="title3">{{ $resepCount }} Data</span>
                             </a>
                         </div>
                         <div class="card3">
-                            <a href="{{route('profile')}}">
-                                <span class="title2"> 04</span><br>
-                                <iconify-icon icon="healthicons:sugar-outline" width="60" height="60"></iconify-icon>
-                                <span class="title3"> Data Kategori Gula </span><br>
-                                <span class="title3"> 15 Data </span><br>
+                            <a href="{{route('kategori_gula')}}">
+                                <span class="title2">04</span>
+                                <iconify-icon icon="healthicons:sugar-outline" width="60" height="60"
+                                    style="color: #fff"></iconify-icon>
+                                <span class="title3">Data Kategori Gula</span>
+                                <span class="title3">{{ $kategoriGulaCount }} Data</span>
                             </a>
                         </div>
                     </div>
@@ -131,6 +147,7 @@
             </div>
         </div>
     </div>
+    <script src="{{ asset('js/profile_logout.js') }}"></script>
 </body>
 
 </html>

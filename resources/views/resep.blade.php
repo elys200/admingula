@@ -75,9 +75,22 @@
                         <div class="text1">
                             <span class="tittle"> Data Resep Makanan </span>
                         </div>
-                        <div class="text2">
-                            <span class="tittle"> Welcome, Han!</span>
-                            <iconify-icon icon="ix:user-profile-filled" width="50" height="50"></iconify-icon>
+<div class="text2" style="display: flex; align-items: center; gap: 10px;">
+                            <span class="tittle">Welcome, {{ Auth::guard('admin')->user()->nama ?? 'Guest' }}!</span>
+                            <div class="profile-dropdown">
+                                <button id="profileBtn" style="background: none; border: none; cursor: pointer;">
+                                    <iconify-icon icon="ix:user-profile-filled" width="50" height="50"></iconify-icon>
+                                </button>
+                                <div id="dropdownMenu" class="dropdown-content">
+                                    <form id="logoutForm" action="{{ route('logout') }}" method="POST">
+                                        @csrf
+                                        <button type="submit">
+                                            <iconify-icon icon="material-symbols:logout" width="20"></iconify-icon>
+                                            Logout
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="topbar2">
@@ -296,8 +309,8 @@
             </div>
         </div>
     </div>
-
     <script src="{{ asset('js/resep.js') }}"></script>
+    <script src="{{ asset('js/profile_logout.js') }}"></script>
 </body>
 
 </html>

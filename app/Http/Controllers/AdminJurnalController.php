@@ -7,26 +7,39 @@ use Illuminate\Http\Request;
 
 class AdminJurnalController extends Controller
 {
-    // Tampilkan view jurnal admin
-    public function index()
+    public function view()
     {
-        $jurnal = Jurnal::with(['user', 'kategori'])->orderByDesc('date')->paginate(10);
-        return view('jurnal', compact('jurnal'));
+        return view('jurnal');
     }
 
-    // Ambil data jurnal untuk fungsi search
-    public function data(Request $request)
+    public function index(Request $request)
     {
-        $query = Jurnal::with(['user:id,username', 'kategori:id,nama'])->orderByDesc('date');
+        $perPage = $request->get('per_page', 9);
 
-        // filter pencarian username
+        $query = Jurnal::with(['user:id,username', 'kategori:id,nama'])
+            ->orderByDesc('date');
+
         if ($request->filled('search')) {
             $search = trim($request->input('search'));
-            $query->whereHas('user', fn ($q) => $q->where('username', 'like', "%{$search}%"));
+            $query->whereHas('user', fn ($q) =>
+                $q->where('username', 'like', "%{$search}%")
+            );
         }
 
-        $data = $query->paginate(10);
+        $jurnal = $query->paginate($perPage);
 
-        return response()->json($data);
+        return response()->json([
+            'data' => $jurnal->items(),
+            'pagination' => [
+                'current_page' => $jurnal->currentPage(),
+                'last_page' => $jurnal->lastPage(),
+                'per_page' => $jurnal->perPage(),
+                'total' => $jurnal->total(),
+                'from' => $jurnal->firstItem() ?? 0,
+                'to' => $jurnal->lastItem(),
+                'prev_page_url' => $jurnal->previousPageUrl(),
+                'next_page_url' => $jurnal->nextPageUrl(),
+            ],
+        ]);
     }
 }
